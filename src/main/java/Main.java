@@ -1,3 +1,5 @@
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -29,6 +31,9 @@ public class Main {
             in.close();
 
             con.disconnect();
+
+            JSONObject jo = new JSONObject(content.toString().substring(1, content.length()-1));
+            System.out.println(jo);
 
             return content.toString();
 
