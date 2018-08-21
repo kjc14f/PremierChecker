@@ -14,6 +14,8 @@ public class Team {
     private List<Fixture> fixtures = new ArrayList<>();
     private int strengthTotal;
     private int difficultyTotal;
+    private int place;
+    private int outOfPlace;
 
     public Team(int id, String name, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength) {
         this.id = id;
@@ -80,5 +82,21 @@ public class Team {
 
     public void setDifficultyTotal(int difficultyTotal) {
         this.difficultyTotal = difficultyTotal;
+    }
+
+    public int getPlace() {
+        return place;
+    }
+
+    public void setPlace(int place) {
+        this.place = place;
+    }
+
+    public int getOutOfPlace() {
+        return outOfPlace;
+    }
+
+    public void setOutOfPlace(int outOfPlace) {
+        this.outOfPlace = outOfPlace;
     }
 }

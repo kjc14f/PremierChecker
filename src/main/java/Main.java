@@ -1,4 +1,3 @@
-import javafx.util.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -8,14 +7,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class Main {
 
     List<Team> teams = new ArrayList<>();
+    private static final int GAMEDAYS = 8;
 
     public static void main(String[] args) {
         new Main();
@@ -24,12 +21,39 @@ public class Main {
     public Main() {
         getTeams();
         matchFixtures(getFixtures());
-        calculatePlays(2);
 
-        System.out.format("%24s%15s%15s\n", "NAME", "STRENGTH", "DIFFICULTY");
-        System.out.format("%54s\n", "------------------------------------------");
+        for (int i = 1; i <= GAMEDAYS; i ++) {
+
+            calculatePlays(i);
+            calculatePlaces();
+
+            System.out.println("***** GAMEDAY WEEK " + i + " *****");
+            System.out.format("%24s%13s%13s%13s%13s%13s%13s%13s\n", "NAME", "STRENGTH", "DIFFICULTY", "NET PLACE",
+                    "H ATTACK", "H DEFENSE", "A ATTACK", "A DEFENSE");
+            System.out.format("%54s\n", "-----------------------------------------------------------------------------------------------------------------------");
+            for (Team team : teams) {
+                System.out.format("%24s%13d%13d%13d%13d%13d%13d%13d\n", team.getName(), team.getStrengthTotal(),
+                        team.getDifficultyTotal(), team.getOutOfPlace(), team.getHomeAttackStrength(),
+                        team.getHomeDefenseStrength(), team.getAwayAttackStrength(), team.getAwayDefenseStrength());
+            }
+            System.out.println("\n\n\n");
+        }
+    }
+
+    public void calculatePlaces() {
         for (Team team : teams) {
-            System.out.format("%24s%15d%15d\n", team.getName(), team.getStrengthTotal(), team.getDifficultyTotal());
+            team.setPlace(teams.indexOf(team) + 1);
+        }
+        List<Integer> tempTeamsDifficulty = new ArrayList<>();
+        for (Team team : teams) {
+            if (!tempTeamsDifficulty.contains(team.getDifficultyTotal())) {
+                tempTeamsDifficulty.add(team.getDifficultyTotal());
+            }
+        }
+        List<Team> tempTeams = new ArrayList<>(teams);
+        Collections.sort(tempTeams, Comparator.comparing(p -> p.getStrengthTotal()));
+        for (Team team : teams) {
+            team.setOutOfPlace(team.getPlace() - tempTeams.indexOf(team) - 1);
         }
     }
 
@@ -46,7 +70,7 @@ public class Main {
             team.setDifficultyTotal(difficultyTotal);
         }
 
-        Collections.sort(teams, Comparator.comparing(p -> p.getDifficultyTotal()));
+        Collections.sort(teams, Comparator.comparing(Team::getDifficultyTotal).thenComparing(Team::getStrengthTotal));
 
     }
 
