@@ -1,3 +1,6 @@
+package com;
+
+import javafx.collections.FXCollections;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -7,40 +10,25 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
-public class Main {
+import static com.Main.BASE_URL;
+import static com.Main.WEEK_OFFSET;
 
-    List<Team> teams = new ArrayList<>();
-    private static final int GAMEDAYS = 8;
+public class TeamChecker {
 
-    public static void main(String[] args) {
-        new Main();
+    private List<Team> teams = FXCollections.observableArrayList();
+    private int gameweeks = 0;
+
+    public TeamChecker() {
+        processTeams();
+        matchFixtures(extractFixtures());
     }
 
-    public Main() {
-        getTeams();
-        matchFixtures(getFixtures());
-
-        for (int i = 1; i <= GAMEDAYS; i ++) {
-
-            calculatePlays(i);
-            calculatePlaces();
-
-            System.out.println("***** GAMEDAY WEEK " + i + " *****");
-            System.out.format("%24s%13s%13s%13s%13s%13s%13s%13s\n", "NAME", "STRENGTH", "DIFFICULTY", "NET PLACE",
-                    "H ATTACK", "H DEFENSE", "A ATTACK", "A DEFENSE");
-            System.out.format("%54s\n", "-----------------------------------------------------------------------------------------------------------------------");
-            for (Team team : teams) {
-                System.out.format("%24s%13d%13d%13d%13d%13d%13d%13d\n", team.getName(), team.getStrengthTotal(),
-                        team.getDifficultyTotal(), team.getOutOfPlace(), team.getHomeAttackStrength(),
-                        team.getHomeDefenseStrength(), team.getAwayAttackStrength(), team.getAwayDefenseStrength());
-            }
-            System.out.println("\n\n\n");
-        }
-    }
-
-    public void calculatePlaces() {
+    public void calculatePlaces(List<Team> teams) {
         for (Team team : teams) {
             team.setPlace(teams.indexOf(team) + 1);
         }
@@ -57,28 +45,37 @@ public class Main {
         }
     }
 
-    public void calculatePlays(int future) {
-        for (Team team : teams) {
+    public List<Team> calculatePlays(int future) {
+
+        List<Team> tempTeamList = new ArrayList<>();
+
+        for (Team prototypeTeam : teams) {
+            Team team = new Team(prototypeTeam);
             int strengthTotal = 0;
             int difficultyTotal = 0;
+            int differenceDifficulty = 0;
             for (int i = 0; i < future; i++) {
                 Fixture fix = team.getFixtures().get(i);
                 strengthTotal += fix.getHomeTeam() == team.getId() ? team.getHomeStrength() : team.getAwayStrength();
-                difficultyTotal += fix.getHomeTeam() == team.getId() ? fix.getAwayDifficulty() - fix.getHomeDifficulty() : fix.getHomeDifficulty() - fix.getAwayDifficulty();
+                difficultyTotal += fix.getHomeTeam() == team.getId() ? fix.getHomeDifficulty() : fix.getAwayDifficulty();
+                differenceDifficulty += fix.getHomeTeam() == team.getId() ? fix.getAwayDifficulty() - fix.getHomeDifficulty() : fix.getHomeDifficulty() - fix.getAwayDifficulty();
+
             }
             team.setStrengthTotal(strengthTotal);
             team.setDifficultyTotal(difficultyTotal);
+            team.setDifferenceDifficulty(differenceDifficulty);
+            tempTeamList.add(team);
         }
 
-        Collections.sort(teams, Comparator.comparing(Team::getDifficultyTotal).thenComparing(Team::getStrengthTotal));
-
+        Collections.sort(tempTeamList, Comparator.comparing(Team::getDifficultyTotal).reversed().thenComparing(Team::getStrengthTotal));
+        return tempTeamList;
     }
 
-    public void getTeams() {
+    private void processTeams() {
         JSONArray ja = makeRequest("teams");
 
         for (Object obj : ja) {
-            JSONObject jo = (JSONObject)obj;
+            JSONObject jo = (JSONObject) obj;
             int id = jo.getInt("id");
             String name = jo.getString("name");
             int awayStrength = jo.getInt("strength_overall_away");
@@ -93,13 +90,13 @@ public class Main {
         }
     }
 
-    public List<Fixture> getFixtures() {
+    private List<Fixture> extractFixtures() {
         JSONArray ja = makeRequest("fixtures");
         List<Fixture> fixtures = new ArrayList<>();
 
         for (Object obj : ja) {
-            JSONObject jo = (JSONObject)obj;
-            LocalDateTime now = LocalDateTime.now();
+            JSONObject jo = (JSONObject) obj;
+            LocalDateTime now = LocalDateTime.now().plusWeeks(WEEK_OFFSET);
             final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssz");
             LocalDateTime deadline = LocalDateTime.parse(jo.getString("deadline_time"), formatter);
 
@@ -110,13 +107,16 @@ public class Main {
                 int homeDifficulty = jo.getInt("team_h_difficulty");
                 int awayDifficulty = jo.getInt("team_a_difficulty");
                 fixtures.add(new Fixture(homeTeam, awayTeam, deadlineTime, homeDifficulty, awayDifficulty));
+            } else {
+                gameweeks++;
             }
         }
+        gameweeks = (gameweeks / 10) + 1;
         Collections.sort(fixtures, Comparator.comparing(Fixture::getDeadlineTime));
         return fixtures;
     }
 
-    public void matchFixtures(List<Fixture> fixtures) {
+    private void matchFixtures(List<Fixture> fixtures) {
         for (Fixture fix : fixtures) {
             for (Team team : teams) {
                 if (fix.getHomeTeam() == team.getId() || fix.getAwayTeam() == team.getId()) {
@@ -126,9 +126,9 @@ public class Main {
         }
     }
 
-    public JSONArray makeRequest(String parameter) {
+    private JSONArray makeRequest(String parameter) {
         try {
-            URL url = new URL("https://fantasy.premierleague.com/drf/" + parameter);
+            URL url = new URL(BASE_URL + parameter);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
 
@@ -151,4 +151,7 @@ public class Main {
         return null;
     }
 
+    public List<Team> getTeams() {
+        return teams;
+    }
 }

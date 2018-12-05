@@ -1,0 +1,282 @@
+package com;
+
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+import javafx.util.Callback;
+
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class Main extends Application {
+
+    public static final int GAMEDAYS = 6;
+    public static final String BASE_URL = "https://fantasy.premierleague.com/drf/";
+    public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm E dd-MM-yyyy");
+    public static final int WEEK_OFFSET = 0;
+
+    private Parent root;
+    private List<Player> players;
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    public Main() {
+//        getTeams();
+//        matchFixtures(getFixtures());
+//
+//        for (int i = 1; i <= GAMEDAYS; i ++) {
+//
+//            calculatePlays(i);
+//            calculatePlaces();
+//
+//            System.out.println(i + " ***** GAMEWEEK " + gameweeks +  "  ---  " + formatter.format(teams.get(0).getFixtures().get(i).getDeadlineTime()) + " *****");
+//            System.out.format("%24s%13s%13s%13s%13s%13s%13s%13s%13s\n", "NAME", "STRENGTH", "DIFFICULTY", "DIF DIC", "NET PLACE",
+//                    "H ATTACK", "H DEFENSE", "A ATTACK", "A DEFENSE");
+//            System.out.format("%54s\n", "-----------------------------------------------------------------------------------------------------------------------");
+//            for (com.Team team : teams) {
+//                System.out.format("%24s%13d%13d%13d%13d%13d%13d%13d%13d\n", team.getName(), team.getStrengthTotal(),
+//                        team.getDifficultyTotal(), team.getDifferenceDifficulty(), team.getOutOfPlace(), team.getHomeAttackStrength(),
+//                        team.getHomeDefenseStrength(), team.getAwayAttackStrength(), team.getAwayDefenseStrength());
+//            }
+//            System.out.println("\n\n");
+//            gameweeks++;
+//        }
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        root = FXMLLoader.load(getClass().getClassLoader().getResource("PremierChecker.fxml"));
+//        new Thread(() -> setup()).start();
+        primaryStage.setTitle("Premier Checker");
+        primaryStage.setScene(new Scene(root, 1800, 900));
+        primaryStage.show();
+        setup();
+    }
+
+    public void setup() {
+
+        Platform.runLater(() -> {
+            TeamChecker teamChecker = new TeamChecker();
+            VBox teamsVBox = (VBox) root.lookup("#TEAM_RATINGS");
+
+            for (int i = 1; i <= GAMEDAYS; i++) {
+
+                List<Team> teams = teamChecker.calculatePlays(i);
+                teamChecker.calculatePlaces(teams);
+
+                Label weekLabel = new Label("Week " + i);
+                weekLabel.setFont(Font.font ("Verdana", 16));
+                weekLabel.setTextFill(Color.BLUEVIOLET);
+                weekLabel.setStyle("-fx-font-color:blue");
+                teamsVBox.getChildren().add(weekLabel);
+                teamsVBox.getChildren().add(createTeamTable(teams));
+                teamsVBox.getChildren().add(new Separator());
+
+            }
+        });
+
+        new Thread(() -> {
+            TeamAdviser teamAdviser = new TeamAdviser();
+            players = teamAdviser.getPlayers();
+        }).start();
+    }
+
+    public void teamClick(Team team) {
+        Label teamLabel = (Label) root.lookup("#TEAM_LABEL");
+        teamLabel.setText(team.getName());
+
+        List<Player> teamPlayers = players.parallelStream()
+                .filter(p -> p.getTeam() == team.getId())
+                .collect(Collectors.toList());
+
+        TitledPane titledPane = (TitledPane) root.lookup("#STRIKERS");
+        TableView<Player> strikers = createGenericPlayerTable(teamPlayers, 4);
+        titledPane.setContent(strikers);
+
+        titledPane = (TitledPane) root.lookup("#MIDFIELDERS");
+        TableView<Player> midfielders = createGenericPlayerTable(teamPlayers, 3);
+        titledPane.setContent(midfielders);
+
+        titledPane = (TitledPane) root.lookup("#DEFENDERS");
+        TableView<Player> defenders = createGenericPlayerTable(teamPlayers, 2);
+        titledPane.setContent(defenders);
+
+        titledPane = (TitledPane) root.lookup("#GOALKEEPERS");
+        TableView<Player> goalkeepers = createGenericPlayerTable(teamPlayers, 1);
+        titledPane.setContent(goalkeepers);
+
+    }
+
+    public TableView<Player> createGenericPlayerTable(List<Player> players, int playerType) {
+        TableView<Player> table = new TableView<>();
+        table.setPrefHeight(300);
+
+        TableColumn name = new TableColumn("Name");
+        name.setCellValueFactory(new PropertyValueFactory<Player, String>("name"));
+
+        TableColumn points = new TableColumn("Points");
+        points.setCellValueFactory(new PropertyValueFactory<Player, String>("points"));
+
+        TableColumn cost = new TableColumn("Cost");
+        cost.setCellValueFactory(new PropertyValueFactory<Player, String>("cost"));
+
+        TableColumn valueToCost = new TableColumn("Value/Cost");
+        valueToCost.setCellValueFactory(new PropertyValueFactory<Player, String>("valueToCost"));
+
+        TableColumn ictIndex = new TableColumn("ICT");
+        ictIndex.setCellValueFactory(new PropertyValueFactory<Player, String>("ictIndex"));
+
+        TableColumn valueToICT = new TableColumn("ICT/Cost");
+        valueToICT.setCellValueFactory(new PropertyValueFactory<Player, String>("valueToICT"));
+
+        TableColumn minutes = new TableColumn("Minutes");
+        minutes.setCellValueFactory(new PropertyValueFactory<Player, String>("minutes"));
+
+        TableColumn chancePlayingThis = new TableColumn("% Playing");
+        chancePlayingThis.setCellValueFactory(new PropertyValueFactory<Player, String>("chancePlayingThis"));
+
+        TableColumn chancePlayingNext = new TableColumn("% Playing +1");
+        chancePlayingNext.setCellValueFactory(new PropertyValueFactory<Player, String>("chancePlayingNext"));
+
+        TableColumn form = new TableColumn("Form");
+        form.setCellValueFactory(new PropertyValueFactory<Player, String>("form"));
+
+        TableColumn influence = new TableColumn("Influence");
+        influence.setCellValueFactory(new PropertyValueFactory<Player, String>("influence"));
+
+        TableColumn threat = new TableColumn("Threat");
+        threat.setCellValueFactory(new PropertyValueFactory<Player, String>("threat"));
+
+        TableColumn costChange = new TableColumn("Cost Change");
+        costChange.setCellValueFactory(new PropertyValueFactory<Player, String>("costChange"));
+
+        TableColumn news = new TableColumn("News");
+        news.setCellValueFactory(new PropertyValueFactory<Player, String>("news"));
+
+        table.getColumns().addAll(
+                name,
+                points,
+                cost,
+                valueToCost,
+                ictIndex,
+                valueToICT,
+                minutes,
+                chancePlayingThis,
+                chancePlayingNext,
+                form,
+                influence,
+                threat,
+                costChange,
+                news
+        );
+
+        ObservableList<Player> observablePlayers = FXCollections.observableArrayList(players.stream()
+                .filter(p -> p.getPlayerType() == playerType)
+                .collect(Collectors.toList()));
+
+        table.setRowFactory(new Callback<>() {
+            @Override
+            public TableRow<Player> call(TableView<Player> tableView) {
+                final TableRow<Player> row = new TableRow<Player>() {
+                    @Override
+                    protected void updateItem(Player player, boolean empty) {
+                        if (player != null) {
+                            if ((player.getChancePlayingThis() == 75) || (player.getChancePlayingNext() == 75)) {
+                                setStyle("-fx-background-color:yellow");
+                            } else if ((player.getChancePlayingThis() > -1 && player.getChancePlayingThis() < 75) ||
+                                    (player.getChancePlayingNext() < -1 && player.getChancePlayingNext() < 75)) {
+                                setStyle("-fx-background-color:lightcoral");
+                            } else {
+                                getStyleClass().removeAll();
+                            }
+                            super.updateItem(player, empty);
+                        }
+                    }
+                };
+
+                return row;
+            }
+        });
+
+        table.setItems(observablePlayers);
+        points.setSortType(TableColumn.SortType.DESCENDING);
+        table.getSortOrder().add(points);
+
+        return table;
+
+    }
+
+    public TableView<Team> createTeamTable(List<Team> teams) {
+        TableView<Team> table = new TableView<>();
+        table.setMinHeight(520);
+
+        TableColumn name = new TableColumn("Name");
+        name.setCellValueFactory(new PropertyValueFactory<Team, String>("name"));
+
+        TableColumn strength = new TableColumn("Strength");
+        strength.setCellValueFactory(new PropertyValueFactory<Team, String>("strengthTotal"));
+
+        TableColumn difficulty = new TableColumn("Diff");
+        difficulty.setCellValueFactory(new PropertyValueFactory<Team, String>("difficultyTotal"));
+
+        TableColumn difficultyDifference = new TableColumn("Diff Dif");
+        difficultyDifference.setCellValueFactory(new PropertyValueFactory<Team, String>("differenceDifficulty"));
+
+        TableColumn netPlace = new TableColumn("Net Place");
+        netPlace.setCellValueFactory(new PropertyValueFactory<Team, String>("outOfPlace"));
+
+        TableColumn homeAttack = new TableColumn("H Att");
+        homeAttack.setCellValueFactory(new PropertyValueFactory<Team, String>("homeAttackStrength"));
+
+        TableColumn homeDefence = new TableColumn("H Def");
+        homeDefence.setCellValueFactory(new PropertyValueFactory<Team, String>("homeDefenseStrength"));
+
+        TableColumn awayAttack = new TableColumn("A Att");
+        awayAttack.setCellValueFactory(new PropertyValueFactory<Team, String>("awayAttackStrength"));
+
+        TableColumn awayDefence = new TableColumn("A Def");
+        awayDefence.setCellValueFactory(new PropertyValueFactory<Team, String>("awayDefenseStrength"));
+
+        table.getColumns().addAll(
+                name,
+                strength,
+                difficulty,
+                difficultyDifference,
+                netPlace,
+                homeAttack,
+                homeDefence,
+                awayAttack,
+                awayDefence
+        );
+
+        table.setRowFactory(tv -> {
+            TableRow<Team> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty()) {
+                    Team rowData = row.getItem();
+                    teamClick(rowData);
+                }
+            });
+            return row;
+        });
+
+        table.setItems(FXCollections.observableArrayList(teams));
+        difficulty.setSortType(TableColumn.SortType.DESCENDING);
+        table.getSortOrder().add(difficulty);
+
+        return table;
+    }
+}
