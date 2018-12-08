@@ -72,9 +72,10 @@ public class Controller {
     }
 
     public void gameWeeksUpdate() {
-//        VBox teamsVBox = (VBox) root.lookup("#TEAMS_VBOX");
-//        WEEK_OFFSET = Integer.parseInt(((TextField) root.lookup("STARTING_FROM")).getText());
-//        setup();
+        teamsVBox.getChildren().removeAll(teamsVBox.getChildren());
+        teamsVBox.getChildren().add(teamRatingsLabel);
+        GAMEDAYS = Integer.parseInt(gameweeksBox.getText());
+        setupTeams();
     }
 
     public void startingFromUpdate() {
