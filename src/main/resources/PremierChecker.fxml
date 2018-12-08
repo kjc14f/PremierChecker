@@ -13,7 +13,7 @@
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<VBox prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.controller.Controller">
   <children>
       <HBox prefHeight="43.0" prefWidth="900.0" spacing="30.0">
          <children>
@@ -24,7 +24,7 @@
                         <Insets top="3.0" />
                      </padding>
                   </Label>
-                  <TextField fx:id="GAME_WEEKS" layoutX="81.0" prefHeight="25.0" prefWidth="42.0" />
+                  <TextField fx:id="gameweeksBox" layoutX="81.0" onAction="#gameWeeksUpdate" prefHeight="25.0" prefWidth="42.0" />
                </children>
             </AnchorPane>
             <AnchorPane>
@@ -34,7 +34,10 @@
                         <Insets top="3.0" />
                      </padding>
                   </Label>
-                  <TextField fx:id="STARTING_FROM" layoutX="79.0" prefHeight="25.0" prefWidth="42.0" />
+                  <TextField fx:id="startingFromBox" layoutX="79.0" onAction="#startingFromUpdate" prefHeight="25.0" prefWidth="42.0">
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets></TextField>
                </children>
             </AnchorPane>
          </children>
@@ -48,13 +51,13 @@
             <Insets left="10.0" top="5.0" />
          </padding>
       </HBox>
-    <SplitPane dividerPositions="0.3262806236080178" focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
+    <SplitPane dividerPositions="0.3674832962138085" focusTraversable="true" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS">
          <items>
             <ScrollPane>
                <content>
-                  <VBox fx:id="TEAM_RATINGS" prefHeight="1000.0" prefWidth="945.0" spacing="10.0">
+                  <VBox fx:id="teamsVBox" prefHeight="1000.0" prefWidth="945.0" spacing="10.0">
                      <children>
-                        <Label prefHeight="32.0" prefWidth="152.0" text="Team Ratings" textAlignment="CENTER" textFill="#fc0000">
+                        <Label fx:id="teamRatingsLabel" prefHeight="32.0" prefWidth="152.0" text="Team Ratings" textAlignment="CENTER" textFill="#fc0000">
                            <font>
                               <Font name="System Bold" size="22.0" />
                            </font>
@@ -71,7 +74,7 @@
             </ScrollPane>
             <VBox fx:id="TEAM" prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <Label fx:id="TEAM_LABEL" prefHeight="32.0" prefWidth="152.0" textAlignment="CENTER" textFill="#fc0000">
+                  <Label fx:id="teamLabel" prefHeight="32.0" prefWidth="152.0" textAlignment="CENTER" textFill="#fc0000">
                      <font>
                         <Font name="System Bold" size="22.0" />
                      </font>
@@ -86,10 +89,10 @@
                      <content>
                         <VBox minHeight="515.0" prefHeight="515.0" prefWidth="553.0">
                            <children>
-                              <TitledPane fx:id="STRIKERS" animated="false" text="Strikers" VBox.vgrow="ALWAYS" />
-                              <TitledPane fx:id="MIDFIELDERS" animated="false" text="Midfielders" />
-                              <TitledPane fx:id="DEFENDERS" animated="false" text="Defenders" />
-                              <TitledPane fx:id="GOALKEEPERS" animated="false" text="Goalkeepers" />
+                              <TitledPane fx:id="strikersPane" animated="false" text="Strikers" VBox.vgrow="ALWAYS" />
+                              <TitledPane fx:id="midfieldersPane" animated="false" text="Midfielders" />
+                              <TitledPane fx:id="defendersPane" animated="false" text="Defenders" />
+                              <TitledPane fx:id="goalkeepersPane" animated="false" text="Goalkeepers" />
                            </children>
                         </VBox>
                      </content>

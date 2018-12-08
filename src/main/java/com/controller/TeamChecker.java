@@ -1,5 +1,7 @@
-package com;
+package com.controller;
 
+import com.Model.Fixture;
+import com.Model.Team;
 import javafx.collections.FXCollections;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,13 +17,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.Main.BASE_URL;
-import static com.Main.WEEK_OFFSET;
+import static com.controller.Controller.BASE_URL;
+import static com.controller.Controller.WEEK_OFFSET;
 
 public class TeamChecker {
 
     private List<Team> teams = FXCollections.observableArrayList();
-    private int gameweeks = 0;
+    private int gameWeeks = 0;
 
     public TeamChecker() {
         processTeams();
@@ -61,6 +63,15 @@ public class TeamChecker {
                 differenceDifficulty += fix.getHomeTeam() == team.getId() ? fix.getAwayDifficulty() - fix.getHomeDifficulty() : fix.getHomeDifficulty() - fix.getAwayDifficulty();
 
             }
+            Fixture weeklyFix = team.getFixtures().get(future - 1);
+            if (weeklyFix.getHomeTeam() == team.getId()) {
+                team.setName(team.getName() + " (H)");
+                team.setWeeklyFixture(weeklyFix.getAwayTeamName() + " (+" + weeklyFix.getHomeDifficulty() + ")");
+            } else {
+                team.setName(team.getName() + " (A)");
+                team.setWeeklyFixture(weeklyFix.getHomeTeamName() + " (+" + weeklyFix.getAwayDifficulty() + ")");
+            }
+
             team.setStrengthTotal(strengthTotal);
             team.setDifficultyTotal(difficultyTotal);
             team.setDifferenceDifficulty(differenceDifficulty);
@@ -94,32 +105,40 @@ public class TeamChecker {
         JSONArray ja = makeRequest("fixtures");
         List<Fixture> fixtures = new ArrayList<>();
 
+        LocalDateTime now = LocalDateTime.now().plusWeeks(WEEK_OFFSET);
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssz");
+
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
-            LocalDateTime now = LocalDateTime.now().plusWeeks(WEEK_OFFSET);
-            final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssz");
             LocalDateTime deadline = LocalDateTime.parse(jo.getString("deadline_time"), formatter);
 
             if (now.isBefore(deadline)) {
                 int homeTeam = jo.getInt("team_h");
                 int awayTeam = jo.getInt("team_a");
-                LocalDateTime deadlineTime = deadline;
                 int homeDifficulty = jo.getInt("team_h_difficulty");
                 int awayDifficulty = jo.getInt("team_a_difficulty");
-                fixtures.add(new Fixture(homeTeam, awayTeam, deadlineTime, homeDifficulty, awayDifficulty));
+                fixtures.add(new Fixture(homeTeam, awayTeam, deadline, homeDifficulty, awayDifficulty));
             } else {
-                gameweeks++;
+                gameWeeks++;
             }
         }
-        gameweeks = (gameweeks / 10) + 1;
+        gameWeeks = (gameWeeks / 10) + 1;
         Collections.sort(fixtures, Comparator.comparing(Fixture::getDeadlineTime));
         return fixtures;
     }
 
     private void matchFixtures(List<Fixture> fixtures) {
+
         for (Fixture fix : fixtures) {
+
             for (Team team : teams) {
-                if (fix.getHomeTeam() == team.getId() || fix.getAwayTeam() == team.getId()) {
+
+                if (fix.getHomeTeam() == team.getId()) {
+                    fix.setHomeTeamName(team.getName());
+                    team.getFixtures().add(fix);
+
+                } else if (fix.getAwayTeam() == team.getId()) {
+                    fix.setAwayTeamName(team.getName());
                     team.getFixtures().add(fix);
                 }
             }
@@ -153,5 +172,9 @@ public class TeamChecker {
 
     public List<Team> getTeams() {
         return teams;
+    }
+
+    public int getGameWeeks() {
+        return gameWeeks;
     }
 }

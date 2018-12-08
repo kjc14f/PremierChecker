@@ -1,4 +1,4 @@
-package com;
+package com.Model;
 
 import java.time.LocalDateTime;
 
@@ -6,6 +6,8 @@ public class Fixture {
 
     private int homeTeam;
     private int awayTeam;
+    private String homeTeamName;
+    private String awayTeamName;
     private LocalDateTime deadlineTime;
     private int homeDifficulty;
     private int awayDifficulty;
@@ -36,5 +38,21 @@ public class Fixture {
 
     public int getAwayDifficulty() {
         return awayDifficulty;
+    }
+
+    public String getHomeTeamName() {
+        return homeTeamName;
+    }
+
+    public void setHomeTeamName(String homeTeamName) {
+        this.homeTeamName = homeTeamName;
+    }
+
+    public String getAwayTeamName() {
+        return awayTeamName;
+    }
+
+    public void setAwayTeamName(String awayTeamName) {
+        this.awayTeamName = awayTeamName;
     }
 }

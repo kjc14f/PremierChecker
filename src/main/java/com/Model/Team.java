@@ -1,4 +1,4 @@
-package com;
+package com.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +19,7 @@ public class Team {
     private int differenceDifficulty;
     private int place;
     private int outOfPlace;
+    String weeklyFixture;
 
     public Team(int id, String name, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength) {
         this.id = id;
@@ -175,5 +176,13 @@ public class Team {
 
     public void setOutOfPlace(int outOfPlace) {
         this.outOfPlace = outOfPlace;
+    }
+
+    public String getWeeklyFixture() {
+        return weeklyFixture;
+    }
+
+    public void setWeeklyFixture(String weeklyFixture) {
+        this.weeklyFixture = weeklyFixture;
     }
 }

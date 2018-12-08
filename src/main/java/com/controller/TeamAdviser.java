@@ -1,5 +1,6 @@
-package com;
+package com.controller;
 
+import com.Model.Player;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -11,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.Main.BASE_URL;
+import static com.controller.Controller.BASE_URL;
 
 public class TeamAdviser {
 
