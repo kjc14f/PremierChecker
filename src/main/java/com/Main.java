@@ -14,9 +14,6 @@ public class Main extends Application {
         launch(args);
     }
 
-    public Main() {
-    }
-
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("PremierChecker.fxml"));

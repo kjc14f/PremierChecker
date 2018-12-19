@@ -11,7 +11,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.util.Callback;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -26,15 +25,24 @@ public class Controller {
 
     private List<Player> players;
 
-    @FXML private VBox teamsVBox;
-    @FXML private Label teamLabel;
-    @FXML private Label teamRatingsLabel;
-    @FXML private TitledPane strikersPane;
-    @FXML private TitledPane midfieldersPane;
-    @FXML private TitledPane defendersPane;
-    @FXML private TitledPane goalkeepersPane;
-    @FXML private TextField gameweeksBox;
-    @FXML private TextField startingFromBox;
+    @FXML
+    private VBox teamsVBox;
+    @FXML
+    private Label teamLabel;
+    @FXML
+    private Label teamRatingsLabel;
+    @FXML
+    private TitledPane strikersPane;
+    @FXML
+    private TitledPane midfieldersPane;
+    @FXML
+    private TitledPane defendersPane;
+    @FXML
+    private TitledPane goalkeepersPane;
+    @FXML
+    private TextField gameweeksBox;
+    @FXML
+    private TextField startingFromBox;
 
     public Controller() {
         setupTeams();
@@ -53,7 +61,7 @@ public class Controller {
                 teamChecker.calculatePlaces(teams);
 
                 Label weekLabel = new Label((i + WEEK_OFFSET) + " - GAMEWEEK " + gameWeeks + "  **** " + formatter.format(teams.get(0).getFixtures().get(i - 1).getDeadlineTime()) + " ****");
-                weekLabel.setFont(Font.font ("Verdana", 16));
+                weekLabel.setFont(Font.font("Verdana", 16));
                 weekLabel.setTextFill(Color.BLUEVIOLET);
                 weekLabel.setStyle("-fx-font-color:blue");
                 teamsVBox.getChildren().add(weekLabel);
@@ -173,28 +181,40 @@ public class Controller {
                 .filter(p -> p.getPlayerType() == playerType)
                 .collect(Collectors.toList()));
 
-        table.setRowFactory(new Callback<>() {
-            @Override
-            public TableRow<Player> call(TableView<Player> tableView) {
-                final TableRow<Player> row = new TableRow<Player>() {
-                    @Override
-                    protected void updateItem(Player player, boolean empty) {
-                        if (player != null) {
-                            if ((player.getChancePlayingThis() == 75) || (player.getChancePlayingNext() == 75)) {
-                                setStyle("-fx-background-color:yellow");
-                            } else if ((player.getChancePlayingThis() > -1 && player.getChancePlayingThis() < 75) ||
-                                    (player.getChancePlayingNext() < -1 && player.getChancePlayingNext() < 75)) {
-                                setStyle("-fx-background-color:lightcoral");
-                            } else {
-                                getStyleClass().removeAll();
-                            }
-                            super.updateItem(player, empty);
+        table.setRowFactory(tv -> {
+            final TableRow<Player> row = new TableRow<>() {
+                @Override
+                protected void updateItem(Player player, boolean empty) {
+                    if (player != null) {
+                        if ((player.getChancePlayingThis() == 75) || (player.getChancePlayingNext() == 75)) {
+                            setStyle("-fx-background-color:yellow");
+                        } else if ((player.getChancePlayingThis() > -1 && player.getChancePlayingThis() < 75) ||
+                                (player.getChancePlayingNext() < -1 && player.getChancePlayingNext() < 75)) {
+                            setStyle("-fx-background-color:lightcoral");
+                        } else {
+                            getStyleClass().removeAll();
                         }
+                        super.updateItem(player, empty);
                     }
-                };
+                }
+            };
 
-                return row;
-            }
+            row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:lightgreen"));
+            row.setOnMouseExited(e -> {
+                row.setStyle("");
+                Player player = row.getItem();
+                if (player != null) {
+                    if ((player.getChancePlayingThis() == 75) || (player.getChancePlayingNext() == 75)) {
+                        row.setStyle("-fx-background-color:yellow");
+                    } else if ((player.getChancePlayingThis() > -1 && player.getChancePlayingThis() < 75) ||
+                            (player.getChancePlayingNext() < -1 && player.getChancePlayingNext() < 75)) {
+                        row.setStyle("-fx-background-color:lightcoral");
+                    } else {
+                        row.getStyleClass().removeAll();
+                    }
+                }
+            });
+            return row;
         });
 
         table.setItems(observablePlayers);
@@ -260,6 +280,9 @@ public class Controller {
                     teamClick(rowData);
                 }
             });
+
+            row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:lightgreen"));
+            row.setOnMouseExited(e -> row.setStyle(""));
             return row;
         });
 
