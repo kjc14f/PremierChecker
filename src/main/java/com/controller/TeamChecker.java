@@ -1,12 +1,17 @@
 package com.controller;
 
 import com.Model.Fixture;
+import com.Model.LeagueTableTeam;
 import com.Model.Team;
-import javafx.collections.FXCollections;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -17,12 +22,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.controller.Controller.BASE_URL;
-import static com.controller.Controller.WEEK_OFFSET;
+import static com.controller.Controller.*;
 
 public class TeamChecker {
 
-    private List<Team> teams = FXCollections.observableArrayList();
+    private List<Team> teams = new ArrayList<>();
+    private List<LeagueTableTeam> leagueTableTeams = new ArrayList<>();
     private int gameWeeks = 0;
 
     public TeamChecker() {
@@ -83,12 +88,13 @@ public class TeamChecker {
     }
 
     private void processTeams() {
-        JSONArray ja = makeRequest("teams");
+        JSONArray ja = makeFPLRequest("teams");
 
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
             int id = jo.getInt("id");
             String name = jo.getString("name");
+            String shortName = jo.getString("short_name");
             int awayStrength = jo.getInt("strength_overall_away");
             int homeStrength = jo.getInt("strength_overall_home");
             int homeAttackStrength = jo.getInt("strength_attack_home");
@@ -96,13 +102,13 @@ public class TeamChecker {
             int awayAttackStrength = jo.getInt("strength_attack_away");
             int awayDefenseStrength = jo.getInt("strength_defence_away");
 
-            teams.add(new Team(id, name, awayStrength, homeStrength, homeAttackStrength, homeDefenseStrength,
+            teams.add(new Team(id, name, shortName, awayStrength, homeStrength, homeAttackStrength, homeDefenseStrength,
                     awayAttackStrength, awayDefenseStrength));
         }
     }
 
     private List<Fixture> extractFixtures() {
-        JSONArray ja = makeRequest("fixtures");
+        JSONArray ja = makeFPLRequest("fixtures");
         List<Fixture> fixtures = new ArrayList<>();
 
         LocalDateTime now = LocalDateTime.now().plusWeeks(WEEK_OFFSET);
@@ -145,9 +151,60 @@ public class TeamChecker {
         }
     }
 
-    private JSONArray makeRequest(String parameter) {
+    private JSONArray makeFPLRequest(String parameter) {
         try {
-            URL url = new URL(BASE_URL + parameter);
+            URL url = new URL(BASE_FPL_URL + parameter);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer content = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+
+            con.disconnect();
+            return new JSONArray(content.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public void getLeaguePlaces() {
+
+        try {
+            Document doc = Jsoup.connect("https://www.premierleague.com/tables").get();
+            Elements tableRows = doc.getElementsByTag("tbody").get(0).children();
+
+            for (int i = 0; i < tableRows.size(); i += 2) {
+                Element team = tableRows.get(i);
+
+                leagueTableTeams.add(new LeagueTableTeam(
+                        team.child(2).child(0).child(1).text(),
+                        Integer.parseInt(team.child(3).text()),
+                        Integer.parseInt(team.child(4).text()),
+                        Integer.parseInt(team.child(5).text()),
+                        Integer.parseInt(team.child(6).text()),
+                        Integer.parseInt(team.child(7).text()),
+                        Integer.parseInt(team.child(8).text()),
+                        Integer.parseInt(team.child(10).text())
+                ));
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public JSONArray makeLeagueRequest() {
+        try {
+            URL url = new URL(BASE_LEAGUE_URL + "");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
 
@@ -176,5 +233,9 @@ public class TeamChecker {
 
     public int getGameWeeks() {
         return gameWeeks;
+    }
+
+    public List<LeagueTableTeam> getLeagueTableTeams() {
+        return leagueTableTeams;
     }
 }

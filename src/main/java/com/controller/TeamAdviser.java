@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.controller.Controller.BASE_URL;
+import static com.controller.Controller.BASE_FPL_URL;
 
 public class TeamAdviser {
 
@@ -57,7 +57,7 @@ public class TeamAdviser {
 
     private JSONArray makeRequest(String parameter) {
         try {
-            URL url = new URL(BASE_URL + parameter);
+            URL url = new URL(BASE_FPL_URL + parameter);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
 

@@ -7,6 +7,7 @@ public class Team {
 
     private int id;
     private String name;
+    private String shortName;
     private int awayStrength;
     private int homeStrength;
     private int homeAttackStrength;
@@ -19,11 +20,12 @@ public class Team {
     private int differenceDifficulty;
     private int place;
     private int outOfPlace;
-    String weeklyFixture;
+    private String weeklyFixture;
 
-    public Team(int id, String name, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength) {
+    public Team(int id, String name, String shortName, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength) {
         this.id = id;
         this.name = name;
+        this.shortName = shortName;
         this.awayStrength = awayStrength;
         this.homeStrength = homeStrength;
         this.homeAttackStrength = homeAttackStrength;
@@ -32,9 +34,10 @@ public class Team {
         this.awayDefenseStrength = awayDefenseStrength;
     }
 
-    public Team(int id, String name, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength, List<Fixture> fixtures, int strengthTotal, int difficultyTotal, int differenceDifficulty, int place, int outOfPlace) {
+    public Team(int id, String name, String shortName, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength, List<Fixture> fixtures, int strengthTotal, int difficultyTotal, int differenceDifficulty, int place, int outOfPlace) {
         this.id = id;
         this.name = name;
+        this.shortName = shortName;
         this.awayStrength = awayStrength;
         this.homeStrength = homeStrength;
         this.homeAttackStrength = homeAttackStrength;
@@ -52,6 +55,7 @@ public class Team {
     public Team(Team team) {
         this(team.getId(),
                 team.getName(),
+                team.getShortName(),
                 team.getAwayStrength(),
                 team.getHomeStrength(),
                 team.getHomeAttackStrength(),
@@ -80,6 +84,14 @@ public class Team {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 
     public int getAwayStrength() {
@@ -185,4 +197,5 @@ public class Team {
     public void setWeeklyFixture(String weeklyFixture) {
         this.weeklyFixture = weeklyFixture;
     }
+
 }

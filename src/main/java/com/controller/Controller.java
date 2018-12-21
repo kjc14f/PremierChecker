@@ -1,5 +1,6 @@
 package com.controller;
 
+import com.Model.LeagueTableTeam;
 import com.Model.Player;
 import com.Model.Team;
 import javafx.application.Platform;
@@ -8,6 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -20,7 +22,8 @@ public class Controller {
 
     public static int GAMEDAYS = 8;
     public static int WEEK_OFFSET = 0;
-    public static final String BASE_URL = "https://fantasy.premierleague.com/drf/";
+    public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/drf/";
+    public static final String BASE_LEAGUE_URL = "https://fantasy.premierleague.com/drf/";
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm E dd/MM/yyyy");
 
     private List<Player> players;
@@ -43,6 +46,8 @@ public class Controller {
     private TextField gameweeksBox;
     @FXML
     private TextField startingFromBox;
+    @FXML
+    private AnchorPane leagueTablePane;
 
     public Controller() {
         setupTeams();
@@ -53,6 +58,8 @@ public class Controller {
 
         Platform.runLater(() -> {
             TeamChecker teamChecker = new TeamChecker();
+            Thread leagueThread = new Thread(() -> teamChecker.getLeaguePlaces());
+            leagueThread.start();
             int gameWeeks = teamChecker.getGameWeeks();
 
             for (int i = 1; i <= GAMEDAYS; i++) {
@@ -68,6 +75,13 @@ public class Controller {
                 teamsVBox.getChildren().add(createTeamTable(teams));
                 teamsVBox.getChildren().add(new Separator());
                 gameWeeks++;
+            }
+
+            try {
+                leagueThread.join();
+                leagueTablePane.getChildren().add(createLeagueTeamTable(teamChecker.getLeagueTableTeams()));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         });
     }
@@ -100,23 +114,23 @@ public class Controller {
                 .filter(p -> p.getTeam() == team.getId())
                 .collect(Collectors.toList());
 
-        TableView<Player> strikers = createGenericPlayerTable(teamPlayers, 4);
+        TableView<Player> strikers = createGenericPlayerTable(teamPlayers, 4, 200);
         strikersPane.setContent(strikers);
 
-        TableView<Player> midfielders = createGenericPlayerTable(teamPlayers, 3);
+        TableView<Player> midfielders = createGenericPlayerTable(teamPlayers, 3, 300);
         midfieldersPane.setContent(midfielders);
 
-        TableView<Player> defenders = createGenericPlayerTable(teamPlayers, 2);
+        TableView<Player> defenders = createGenericPlayerTable(teamPlayers, 2, 300);
         defendersPane.setContent(defenders);
 
-        TableView<Player> goalkeepers = createGenericPlayerTable(teamPlayers, 1);
+        TableView<Player> goalkeepers = createGenericPlayerTable(teamPlayers, 1, 150);
         goalkeepersPane.setContent(goalkeepers);
 
     }
 
-    public TableView<Player> createGenericPlayerTable(List<Player> players, int playerType) {
+    public TableView<Player> createGenericPlayerTable(List<Player> players, int playerType, int prefHeight) {
         TableView<Player> table = new TableView<>();
-        table.setPrefHeight(300);
+        table.setPrefHeight(prefHeight);
 
         TableColumn name = new TableColumn("Name");
         name.setCellValueFactory(new PropertyValueFactory<Player, String>("name"));
@@ -139,10 +153,10 @@ public class Controller {
         TableColumn minutes = new TableColumn("Minutes");
         minutes.setCellValueFactory(new PropertyValueFactory<Player, String>("minutes"));
 
-        TableColumn chancePlayingThis = new TableColumn("% Playing");
+        TableColumn chancePlayingThis = new TableColumn("% Playing Last");
         chancePlayingThis.setCellValueFactory(new PropertyValueFactory<Player, String>("chancePlayingThis"));
 
-        TableColumn chancePlayingNext = new TableColumn("% Playing +1");
+        TableColumn chancePlayingNext = new TableColumn("% Playing");
         chancePlayingNext.setCellValueFactory(new PropertyValueFactory<Player, String>("chancePlayingNext"));
 
         TableColumn form = new TableColumn("Form");
@@ -289,6 +303,59 @@ public class Controller {
         table.setItems(FXCollections.observableArrayList(teams));
         difficulty.setSortType(TableColumn.SortType.DESCENDING);
         table.getSortOrder().add(difficulty);
+
+        return table;
+    }
+
+    public TableView<LeagueTableTeam> createLeagueTeamTable(List<LeagueTableTeam> teams) {
+        TableView<LeagueTableTeam> table = new TableView<>();
+        table.setMinSize(1000, 1000);
+
+        TableColumn name = new TableColumn("Team");
+        name.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("name"));
+
+        TableColumn played = new TableColumn("Played");
+        played.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("played"));
+
+        TableColumn points = new TableColumn("Points");
+        points.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("points"));
+
+        TableColumn wins = new TableColumn("Wins");
+        wins.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("wins"));
+
+        TableColumn draws = new TableColumn("Draws");
+        draws.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("draws"));
+
+        TableColumn losses = new TableColumn("Losses");
+        losses.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("losses"));
+
+        TableColumn goalsFor = new TableColumn("Goals For");
+        goalsFor.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("goalsFor"));
+
+        TableColumn goalsAgainst = new TableColumn("Goals Against");
+        goalsAgainst.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("goalsAgainst"));
+
+        table.getColumns().addAll(
+                name,
+                played,
+                points,
+                wins,
+                draws,
+                losses,
+                goalsFor,
+                goalsAgainst
+        );
+
+        table.setRowFactory(tv -> {
+            TableRow<LeagueTableTeam> row = new TableRow<>();
+            row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:lightgreen"));
+            row.setOnMouseExited(e -> row.setStyle(""));
+            return row;
+        });
+
+        table.setItems(FXCollections.observableArrayList(teams));
+        points.setSortType(TableColumn.SortType.DESCENDING);
+        table.getSortOrder().add(points);
 
         return table;
     }
