@@ -1,5 +1,6 @@
 package com.controller;
 
+import com.Model.Fixture;
 import com.Model.LeagueTableTeam;
 import com.Model.Player;
 import com.Model.Team;
@@ -79,7 +80,10 @@ public class Controller {
 
             try {
                 leagueThread.join();
-                leagueTablePane.getChildren().add(createLeagueTeamTable(teamChecker.getLeagueTableTeams()));
+                TableView<LeagueTableTeam> leagueTable = createLeagueTeamTable(teamChecker.getLeagueTableTeams());
+                AnchorPane.setLeftAnchor(leagueTable, 0.0);
+                AnchorPane.setRightAnchor(leagueTable, 0.0);
+                leagueTablePane.getChildren().add(leagueTable);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -108,7 +112,12 @@ public class Controller {
     }
 
     public void teamClick(Team team) {
-        teamLabel.setText(team.getName());
+        String fixtures = "";
+        for (Fixture fix : team.getFixtures()) {
+            fixtures += (fix.getHomeTeam() == team.getId() ? fix.getAwayTeamName() : fix.getHomeTeamName()) + ", ";
+        }
+
+        teamLabel.setText(team.getName().substring(0, team.getName().length() - 4) + " - " + fixtures);
 
         List<Player> teamPlayers = players.parallelStream()
                 .filter(p -> p.getTeam() == team.getId())
@@ -141,17 +150,20 @@ public class Controller {
         TableColumn cost = new TableColumn("Cost");
         cost.setCellValueFactory(new PropertyValueFactory<Player, String>("cost"));
 
-        TableColumn valueToCost = new TableColumn("Value/Cost");
-        valueToCost.setCellValueFactory(new PropertyValueFactory<Player, String>("valueToCost"));
-
         TableColumn ictIndex = new TableColumn("ICT");
         ictIndex.setCellValueFactory(new PropertyValueFactory<Player, String>("ictIndex"));
+
+        TableColumn minutes = new TableColumn("Minutes");
+        minutes.setCellValueFactory(new PropertyValueFactory<Player, String>("minutes"));
+
+        TableColumn valueToCost = new TableColumn("Value/Cost");
+        valueToCost.setCellValueFactory(new PropertyValueFactory<Player, String>("valueToCost"));
 
         TableColumn valueToICT = new TableColumn("ICT/Cost");
         valueToICT.setCellValueFactory(new PropertyValueFactory<Player, String>("valueToICT"));
 
-        TableColumn minutes = new TableColumn("Minutes");
-        minutes.setCellValueFactory(new PropertyValueFactory<Player, String>("minutes"));
+        TableColumn valueToMinutes = new TableColumn("Mins/Points");
+        valueToMinutes.setCellValueFactory(new PropertyValueFactory<Player, String>("valueToMinutes"));
 
         TableColumn chancePlayingThis = new TableColumn("% Playing Last");
         chancePlayingThis.setCellValueFactory(new PropertyValueFactory<Player, String>("chancePlayingThis"));
@@ -178,10 +190,11 @@ public class Controller {
                 name,
                 points,
                 cost,
-                valueToCost,
                 ictIndex,
-                valueToICT,
                 minutes,
+                valueToCost,
+                valueToICT,
+                valueToMinutes,
                 chancePlayingThis,
                 chancePlayingNext,
                 form,
@@ -200,10 +213,12 @@ public class Controller {
                 @Override
                 protected void updateItem(Player player, boolean empty) {
                     if (player != null) {
-                        if ((player.getChancePlayingThis() == 75) || (player.getChancePlayingNext() == 75)) {
+                        if (player.getChancePlayingThis() == 75) {
+                            setStyle("-fx-background-color:lightyellow");
+                        } else if (player.getChancePlayingNext() == 75) {
                             setStyle("-fx-background-color:yellow");
                         } else if ((player.getChancePlayingThis() > -1 && player.getChancePlayingThis() < 75) ||
-                                (player.getChancePlayingNext() < -1 && player.getChancePlayingNext() < 75)) {
+                                (player.getChancePlayingNext() > -1 && player.getChancePlayingNext() < 75)) {
                             setStyle("-fx-background-color:lightcoral");
                         } else {
                             getStyleClass().removeAll();
@@ -221,7 +236,7 @@ public class Controller {
                     if ((player.getChancePlayingThis() == 75) || (player.getChancePlayingNext() == 75)) {
                         row.setStyle("-fx-background-color:yellow");
                     } else if ((player.getChancePlayingThis() > -1 && player.getChancePlayingThis() < 75) ||
-                            (player.getChancePlayingNext() < -1 && player.getChancePlayingNext() < 75)) {
+                            (player.getChancePlayingNext() > -1 && player.getChancePlayingNext() < 75)) {
                         row.setStyle("-fx-background-color:lightcoral");
                     } else {
                         row.getStyleClass().removeAll();
@@ -309,7 +324,12 @@ public class Controller {
 
     public TableView<LeagueTableTeam> createLeagueTeamTable(List<LeagueTableTeam> teams) {
         TableView<LeagueTableTeam> table = new TableView<>();
-        table.setMinSize(1000, 1000);
+        table.setPrefSize(1500, 1500);
+//        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//        table.setMinSize(screenSize.getWidth() - 50, screenSize.getHeight() - 100);
+
+        TableColumn position = new TableColumn("");
+        position.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("positionChangeImage"));
 
         TableColumn name = new TableColumn("Team");
         name.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("name"));
@@ -336,6 +356,7 @@ public class Controller {
         goalsAgainst.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("goalsAgainst"));
 
         table.getColumns().addAll(
+                position,
                 name,
                 played,
                 points,

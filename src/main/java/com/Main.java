@@ -19,7 +19,6 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("PremierChecker.fxml"));
         primaryStage.setTitle("Premier Checker");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        System.out.println(screenSize.getHeight());
         primaryStage.setScene(new Scene(root, screenSize.getWidth() - 50, screenSize.getHeight() - 100));
         primaryStage.show();
     }

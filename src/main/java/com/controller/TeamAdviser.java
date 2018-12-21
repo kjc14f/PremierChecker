@@ -48,10 +48,17 @@ public class TeamAdviser {
             valueToCost /= 100;
             double valueToICT = Math.round((ictIndex/cost) * 100);
             valueToICT /= 100;
+            double valueToMinute;
+            if (points != 0) {
+                valueToMinute = Math.round(((double) minutes / points) * 100);
+                valueToMinute /= 100;
+            } else {
+                valueToMinute = 0;
+            }
 
             players.add(new Player(name, cost, form, points, minutes, playerType, chancePlayingThis, chancePlayingNext,
                     costChange, influence, threat, ictIndex, team, news,
-                    valueToCost, valueToICT));
+                    valueToCost, valueToICT, valueToMinute));
         }
     }
 

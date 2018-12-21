@@ -3,6 +3,8 @@ package com.controller;
 import com.Model.Fixture;
 import com.Model.LeagueTableTeam;
 import com.Model.Team;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -11,7 +13,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -185,6 +186,19 @@ public class TeamChecker {
             for (int i = 0; i < tableRows.size(); i += 2) {
                 Element team = tableRows.get(i);
 
+                Image image;
+                String positionChangeString = team.child(1).child(1).className();
+                if (positionChangeString.equals("movement up")) {
+                    image = new Image(getClass().getResource("/UpArrow.png").toURI().toString());
+                } else if (positionChangeString.equals("movement down")) {
+                    image = new Image(getClass().getResource("/DownArrow.png").toURI().toString());
+                } else {
+                    image = new Image(getClass().getResource("/NoChange.png").toURI().toString());
+                }
+                ImageView position = new ImageView(image);
+                position.setPreserveRatio(true);
+                position.setFitHeight(12);
+
                 leagueTableTeams.add(new LeagueTableTeam(
                         team.child(2).child(0).child(1).text(),
                         Integer.parseInt(team.child(3).text()),
@@ -193,11 +207,12 @@ public class TeamChecker {
                         Integer.parseInt(team.child(6).text()),
                         Integer.parseInt(team.child(7).text()),
                         Integer.parseInt(team.child(8).text()),
-                        Integer.parseInt(team.child(10).text())
+                        Integer.parseInt(team.child(10).text()),
+                        position
                 ));
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -18,10 +18,11 @@ public class Player {
     private String news;
     private double valueToCost;
     private double valueToICT;
+    private double valueToMinutes;
 
     public Player(String name, float cost, float form, int points, int minutes, int playerType, int chancePlayingThis,
                   int chancePlayingNext, float costChange, String influence, String threat, double ictIndex, int team,
-                  String news, double valueToCost, double valueToICT) {
+                  String news, double valueToCost, double valueToICT, double valueToMinutes) {
         this.name = name;
         this.cost = cost;
         this.form = form;
@@ -38,6 +39,7 @@ public class Player {
         this.news = news;
         this.valueToCost = valueToCost;
         this.valueToICT = valueToICT;
+        this.valueToMinutes = valueToMinutes;
     }
 
     public String getName() {
@@ -166,5 +168,13 @@ public class Player {
 
     public void setValueToICT(double valueToICT) {
         this.valueToICT = valueToICT;
+    }
+
+    public double getValueToMinutes() {
+        return valueToMinutes;
+    }
+
+    public void setValueToMinutes(double valueToMinutes) {
+        this.valueToMinutes = valueToMinutes;
     }
 }
