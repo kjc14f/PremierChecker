@@ -1,5 +1,7 @@
 package com.Model;
 
+import javafx.scene.image.ImageView;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ public class Team {
     private int id;
     private String name;
     private String shortName;
+    private int strength;
     private int awayStrength;
     private int homeStrength;
     private int homeAttackStrength;
@@ -22,10 +25,22 @@ public class Team {
     private int outOfPlace;
     private String weeklyFixture;
 
-    public Team(int id, String name, String shortName, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength) {
+    // League Table Data
+    private int played;
+    private int wins;
+    private int draws;
+    private int losses;
+    private int goalsFor;
+    private int goalsAgainst;
+    private int points;
+    private ImageView positionChangeImage;
+    private int cleanSheets;
+
+    public Team(int id, String name, String shortName, int strength, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength) {
         this.id = id;
         this.name = name;
         this.shortName = shortName;
+        this.strength = strength;
         this.awayStrength = awayStrength;
         this.homeStrength = homeStrength;
         this.homeAttackStrength = homeAttackStrength;
@@ -34,10 +49,11 @@ public class Team {
         this.awayDefenseStrength = awayDefenseStrength;
     }
 
-    public Team(int id, String name, String shortName, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength, List<Fixture> fixtures, int strengthTotal, int difficultyTotal, int differenceDifficulty, int place, int outOfPlace) {
+    public Team(int id, String name, String shortName, int strength, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength, List<Fixture> fixtures, int strengthTotal, int difficultyTotal, int differenceDifficulty, int place, int outOfPlace) {
         this.id = id;
         this.name = name;
         this.shortName = shortName;
+        this.strength = strength;
         this.awayStrength = awayStrength;
         this.homeStrength = homeStrength;
         this.homeAttackStrength = homeAttackStrength;
@@ -56,6 +72,7 @@ public class Team {
         this(team.getId(),
                 team.getName(),
                 team.getShortName(),
+                team.getStrength(),
                 team.getAwayStrength(),
                 team.getHomeStrength(),
                 team.getHomeAttackStrength(),
@@ -92,6 +109,14 @@ public class Team {
 
     public void setShortName(String shortName) {
         this.shortName = shortName;
+    }
+
+    public int getStrength() {
+        return strength;
+    }
+
+    public void setStrength(int strength) {
+        this.strength = strength;
     }
 
     public int getAwayStrength() {
@@ -198,4 +223,75 @@ public class Team {
         this.weeklyFixture = weeklyFixture;
     }
 
+    public int getPlayed() {
+        return played;
+    }
+
+    public void setPlayed(int played) {
+        this.played = played;
+    }
+
+    public int getWins() {
+        return wins;
+    }
+
+    public void setWins(int wins) {
+        this.wins = wins;
+    }
+
+    public int getDraws() {
+        return draws;
+    }
+
+    public void setDraws(int draws) {
+        this.draws = draws;
+    }
+
+    public int getLosses() {
+        return losses;
+    }
+
+    public void setLosses(int losses) {
+        this.losses = losses;
+    }
+
+    public int getGoalsFor() {
+        return goalsFor;
+    }
+
+    public void setGoalsFor(int goalsFor) {
+        this.goalsFor = goalsFor;
+    }
+
+    public int getGoalsAgainst() {
+        return goalsAgainst;
+    }
+
+    public void setGoalsAgainst(int goalsAgainst) {
+        this.goalsAgainst = goalsAgainst;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
+    public ImageView getPositionChangeImage() {
+        return positionChangeImage;
+    }
+
+    public void setPositionChangeImage(ImageView positionChangeImage) {
+        this.positionChangeImage = positionChangeImage;
+    }
+
+    public int getCleanSheets() {
+        return cleanSheets;
+    }
+
+    public void setCleanSheets(int cleanSheets) {
+        this.cleanSheets = cleanSheets;
+    }
 }

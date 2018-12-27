@@ -1,10 +1,11 @@
 package com.controller;
 
 import com.Model.Fixture;
-import com.Model.LeagueTableTeam;
 import com.Model.Player;
 import com.Model.Team;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -14,10 +15,16 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.util.Callback;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.Main.SCREEN_HEIGHT;
+import static com.Main.SCREEN_WIDTH;
 
 public class Controller {
 
@@ -49,6 +56,8 @@ public class Controller {
     private TextField startingFromBox;
     @FXML
     private AnchorPane leagueTablePane;
+    @FXML
+    private AnchorPane difficultyPane;
 
     public Controller() {
         setupTeams();
@@ -80,13 +89,16 @@ public class Controller {
 
             try {
                 leagueThread.join();
-                TableView<LeagueTableTeam> leagueTable = createLeagueTeamTable(teamChecker.getLeagueTableTeams());
+                TableView<Team> leagueTable = createLeagueTeamTable(teamChecker.getTeams().values());
                 AnchorPane.setLeftAnchor(leagueTable, 0.0);
                 AnchorPane.setRightAnchor(leagueTable, 0.0);
                 leagueTablePane.getChildren().add(leagueTable);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            difficultyPane.getChildren().add(createDifficultyTable(teamChecker.getTeams().values(), teamChecker.getGameWeeks()));
+
         });
     }
 
@@ -322,38 +334,39 @@ public class Controller {
         return table;
     }
 
-    public TableView<LeagueTableTeam> createLeagueTeamTable(List<LeagueTableTeam> teams) {
-        TableView<LeagueTableTeam> table = new TableView<>();
-        table.setPrefSize(1500, 1500);
-//        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//        table.setMinSize(screenSize.getWidth() - 50, screenSize.getHeight() - 100);
+    public TableView<Team> createLeagueTeamTable(Collection<Team> teams) {
+        TableView<Team> table = new TableView<>();
+        table.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
         TableColumn position = new TableColumn("");
-        position.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("positionChangeImage"));
+        position.setCellValueFactory(new PropertyValueFactory<Team, String>("positionChangeImage"));
 
         TableColumn name = new TableColumn("Team");
-        name.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("name"));
+        name.setCellValueFactory(new PropertyValueFactory<Team, String>("name"));
 
         TableColumn played = new TableColumn("Played");
-        played.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("played"));
+        played.setCellValueFactory(new PropertyValueFactory<Team, String>("played"));
 
         TableColumn points = new TableColumn("Points");
-        points.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("points"));
+        points.setCellValueFactory(new PropertyValueFactory<Team, String>("points"));
 
         TableColumn wins = new TableColumn("Wins");
-        wins.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("wins"));
+        wins.setCellValueFactory(new PropertyValueFactory<Team, String>("wins"));
 
         TableColumn draws = new TableColumn("Draws");
-        draws.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("draws"));
+        draws.setCellValueFactory(new PropertyValueFactory<Team, String>("draws"));
 
         TableColumn losses = new TableColumn("Losses");
-        losses.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("losses"));
+        losses.setCellValueFactory(new PropertyValueFactory<Team, String>("losses"));
 
         TableColumn goalsFor = new TableColumn("Goals For");
-        goalsFor.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("goalsFor"));
+        goalsFor.setCellValueFactory(new PropertyValueFactory<Team, String>("goalsFor"));
 
         TableColumn goalsAgainst = new TableColumn("Goals Against");
-        goalsAgainst.setCellValueFactory(new PropertyValueFactory<LeagueTableTeam, String>("goalsAgainst"));
+        goalsAgainst.setCellValueFactory(new PropertyValueFactory<Team, String>("goalsAgainst"));
+
+        TableColumn cleanSheets = new TableColumn("Clean Sheets");
+        cleanSheets.setCellValueFactory(new PropertyValueFactory<Team, String>("cleanSheets"));
 
         table.getColumns().addAll(
                 position,
@@ -364,17 +377,110 @@ public class Controller {
                 draws,
                 losses,
                 goalsFor,
-                goalsAgainst
+                goalsAgainst,
+                cleanSheets
         );
 
         table.setRowFactory(tv -> {
-            TableRow<LeagueTableTeam> row = new TableRow<>();
+            TableRow<Team> row = new TableRow<>();
             row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:lightgreen"));
             row.setOnMouseExited(e -> row.setStyle(""));
             return row;
         });
 
         table.setItems(FXCollections.observableArrayList(teams));
+        points.setSortType(TableColumn.SortType.DESCENDING);
+        table.getSortOrder().add(points);
+
+        return table;
+    }
+
+    public TableView<List<StringProperty>> createDifficultyTable(Collection<Team> teams, int gameweeks) {
+
+        TableView table = new TableView<>();
+        table.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+        int gameweeksRemaining = 38 - gameweeks;
+
+        TableColumn<List<StringProperty>, String> name = new TableColumn("Name");
+        name.setCellValueFactory(data -> data.getValue().get(0));
+        table.getColumns().add(name);
+
+        TableColumn<List<StringProperty>, String> points = new TableColumn("Points");
+        points.setCellValueFactory(data -> data.getValue().get(1));
+        table.getColumns().add(points);
+
+        TableColumn<List<StringProperty>, String> difficulty = new TableColumn("Difficulty");
+        difficulty.setCellValueFactory(data -> data.getValue().get(2));
+        difficulty.setEditable(true);
+        table.getColumns().add(difficulty);
+
+        for (int i = 0; i < gameweeksRemaining; i++)  {
+            TableColumn<List<StringProperty>, String> column = new TableColumn("" + (gameweeks + i));
+            column.setPrefWidth(50);
+            int finalI = i + 3;
+            column.setCellValueFactory(data -> data.getValue().get(finalI));
+
+            column.setCellFactory(new Callback<TableColumn<List<StringProperty>, String>, TableCell<List<StringProperty>, String>>()
+            {
+                @Override
+                public TableCell<List<StringProperty>, String> call(
+                        TableColumn<List<StringProperty>, String> param) {
+                    return new TableCell<List<StringProperty>, String>() {
+                        @Override
+                        protected void updateItem(String item, boolean empty) {
+                            if (!empty) {
+                                if (item.equals("1")) {
+                                    setStyle("-fx-background-color: #00910e");
+                                } else if (item.equals("2")) {
+                                    setStyle("-fx-background-color: #00ff86");
+                                } else if (item.equals("3")) {
+                                    setStyle("-fx-background-color: #ebebe4");
+                                } else if (item.equals("4")) {
+                                    setStyle("-fx-background-color: #ff005a");
+                                } else if (item.equals("5")) {
+                                    setStyle("-fx-background-color: #861d46");
+                                }
+                                setStyle(getStyle() + "; -fx-border-color: black");
+                            }
+                        }
+                    };
+                }
+            });
+
+            table.getColumns().add(column);
+        }
+
+        ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
+
+        for (Team team : teams) {
+
+            List<StringProperty> row = new ArrayList<>();
+            row.add(0, new SimpleStringProperty(team.getName()));
+            row.add(1, new SimpleStringProperty("" + team.getPoints()));
+            row.add(2, new SimpleStringProperty("" + team.getStrength()));
+
+            for (int i = 0; i < gameweeksRemaining; i++) {
+                Fixture fix = team.getFixtures().get(i);
+
+                row.add(i + 3, new SimpleStringProperty("" + (fix.getHomeTeam() == team.getId() ? fix.getHomeDifficulty() : fix.getAwayDifficulty())));
+
+            }
+            data.add(row);
+        }
+
+        table.setRowFactory(tv -> {
+            final TableRow<List<StringProperty>> row = new TableRow<>();
+//            row.setStyle("-fx-padding: 10 10 10 10");
+            row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:lightgreen"));
+            row.setOnMouseExited(e -> row.setStyle(""));
+            return row;
+        });
+
+        table.setStyle("-fx-border-color: red; -fx-table-cell-border-color:red");
+        table.setFixedCellSize(40.0);
+        table.setItems(data);
+
         points.setSortType(TableColumn.SortType.DESCENDING);
         table.getSortOrder().add(points);
 

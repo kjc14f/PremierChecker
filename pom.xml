@@ -35,27 +35,35 @@
     <dependency>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-controls</artifactId>
-        <version>12-ea+3</version>
+        <version>12-ea+6</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-fxml -->
     <dependency>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-fxml</artifactId>
-        <version>12-ea+3</version>
+        <version>12-ea+6</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-graphics -->
     <dependency>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-graphics</artifactId>
-        <version>12-ea+3</version>
+        <version>12-ea+6</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-base -->
     <dependency>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-base</artifactId>
-        <version>12-ea+3</version>
+        <version>12-ea+6</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-web -->
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-web</artifactId>
+        <version>11.0.1</version>
+    </dependency>
+
+
 
 </dependencies>
 

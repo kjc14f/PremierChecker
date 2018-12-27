@@ -12,12 +12,14 @@ public class Fixture {
     private int homeDifficulty;
     private int awayDifficulty;
 
-    public Fixture(int homeTeam, int awayTeam, LocalDateTime deadlineTime, int homeDifficulty, int awayDifficulty) {
+    public Fixture(int homeTeam, int awayTeam, LocalDateTime deadlineTime, int homeDifficulty, int awayDifficulty, String homeTeamName, String awayTeamName) {
         this.homeTeam = homeTeam;
         this.awayTeam = awayTeam;
         this.deadlineTime = deadlineTime;
         this.homeDifficulty = homeDifficulty;
         this.awayDifficulty = awayDifficulty;
+        this.homeTeamName = homeTeamName;
+        this.awayTeamName = awayTeamName;
     }
 
     public int getHomeTeam() {
@@ -44,15 +46,8 @@ public class Fixture {
         return homeTeamName;
     }
 
-    public void setHomeTeamName(String homeTeamName) {
-        this.homeTeamName = homeTeamName;
-    }
-
     public String getAwayTeamName() {
         return awayTeamName;
     }
 
-    public void setAwayTeamName(String awayTeamName) {
-        this.awayTeamName = awayTeamName;
-    }
 }

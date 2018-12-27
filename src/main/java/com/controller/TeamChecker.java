@@ -1,7 +1,6 @@
 package com.controller;
 
 import com.Model.Fixture;
-import com.Model.LeagueTableTeam;
 import com.Model.Team;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -18,22 +17,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static com.controller.Controller.*;
 
 public class TeamChecker {
 
-    private List<Team> teams = new ArrayList<>();
-    private List<LeagueTableTeam> leagueTableTeams = new ArrayList<>();
+    private Map<Integer, Team> teams = new HashMap<>();
     private int gameWeeks = 0;
 
     public TeamChecker() {
         processTeams();
-        matchFixtures(extractFixtures());
+        extractFixtures();
     }
 
     public void calculatePlaces(List<Team> teams) {
@@ -57,7 +52,7 @@ public class TeamChecker {
 
         List<Team> tempTeamList = new ArrayList<>();
 
-        for (Team prototypeTeam : teams) {
+        for (Team prototypeTeam : teams.values()) {
             Team team = new Team(prototypeTeam);
             int strengthTotal = 0;
             int difficultyTotal = 0;
@@ -96,6 +91,7 @@ public class TeamChecker {
             int id = jo.getInt("id");
             String name = jo.getString("name");
             String shortName = jo.getString("short_name");
+            int strength = jo.getInt("strength");
             int awayStrength = jo.getInt("strength_overall_away");
             int homeStrength = jo.getInt("strength_overall_home");
             int homeAttackStrength = jo.getInt("strength_attack_home");
@@ -103,7 +99,11 @@ public class TeamChecker {
             int awayAttackStrength = jo.getInt("strength_attack_away");
             int awayDefenseStrength = jo.getInt("strength_defence_away");
 
-            teams.add(new Team(id, name, shortName, awayStrength, homeStrength, homeAttackStrength, homeDefenseStrength,
+            if (name.equals("Spurs")) {
+                name = "Tottenham";
+            }
+
+            teams.put(id, new Team(id, name, shortName, strength, awayStrength, homeStrength, homeAttackStrength, homeDefenseStrength,
                     awayAttackStrength, awayDefenseStrength));
         }
     }
@@ -118,38 +118,27 @@ public class TeamChecker {
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
             LocalDateTime deadline = LocalDateTime.parse(jo.getString("deadline_time"), formatter);
+            int homeTeamID = jo.getInt("team_h");
+            int awayTeamID = jo.getInt("team_a");
+            Team homeTeam = teams.get(homeTeamID);
+            Team awayTeam = teams.get(awayTeamID);
 
             if (now.isBefore(deadline)) {
-                int homeTeam = jo.getInt("team_h");
-                int awayTeam = jo.getInt("team_a");
                 int homeDifficulty = jo.getInt("team_h_difficulty");
                 int awayDifficulty = jo.getInt("team_a_difficulty");
-                fixtures.add(new Fixture(homeTeam, awayTeam, deadline, homeDifficulty, awayDifficulty));
+                Fixture fix = new Fixture(homeTeamID, awayTeamID, deadline, homeDifficulty, awayDifficulty, homeTeam.getName(), awayTeam.getName());
+                fixtures.add(fix);
+                homeTeam.getFixtures().add(fix);
+                awayTeam.getFixtures().add(fix);
             } else {
+                if (!jo.isNull("team_a_score") && jo.getInt("team_a_score") == 0) homeTeam.setCleanSheets(homeTeam.getCleanSheets() + 1);
+                if (!jo.isNull("team_h_score") && jo.getInt("team_h_score") == 0) awayTeam.setCleanSheets(awayTeam.getCleanSheets() + 1);
                 gameWeeks++;
             }
         }
         gameWeeks = (gameWeeks / 10) + 1;
         Collections.sort(fixtures, Comparator.comparing(Fixture::getDeadlineTime));
         return fixtures;
-    }
-
-    private void matchFixtures(List<Fixture> fixtures) {
-
-        for (Fixture fix : fixtures) {
-
-            for (Team team : teams) {
-
-                if (fix.getHomeTeam() == team.getId()) {
-                    fix.setHomeTeamName(team.getName());
-                    team.getFixtures().add(fix);
-
-                } else if (fix.getAwayTeam() == team.getId()) {
-                    fix.setAwayTeamName(team.getName());
-                    team.getFixtures().add(fix);
-                }
-            }
-        }
     }
 
     private JSONArray makeFPLRequest(String parameter) {
@@ -184,10 +173,10 @@ public class TeamChecker {
             Elements tableRows = doc.getElementsByTag("tbody").get(0).children();
 
             for (int i = 0; i < tableRows.size(); i += 2) {
-                Element team = tableRows.get(i);
+                Element htmlTeam = tableRows.get(i);
 
                 Image image;
-                String positionChangeString = team.child(1).child(1).className();
+                String positionChangeString = htmlTeam.child(1).child(1).className();
                 if (positionChangeString.equals("movement up")) {
                     image = new Image(getClass().getResource("/UpArrow.png").toURI().toString());
                 } else if (positionChangeString.equals("movement down")) {
@@ -199,17 +188,40 @@ public class TeamChecker {
                 position.setPreserveRatio(true);
                 position.setFitHeight(12);
 
-                leagueTableTeams.add(new LeagueTableTeam(
-                        team.child(2).child(0).child(1).text(),
-                        Integer.parseInt(team.child(3).text()),
-                        Integer.parseInt(team.child(4).text()),
-                        Integer.parseInt(team.child(5).text()),
-                        Integer.parseInt(team.child(6).text()),
-                        Integer.parseInt(team.child(7).text()),
-                        Integer.parseInt(team.child(8).text()),
-                        Integer.parseInt(team.child(10).text()),
-                        position
-                ));
+                String name = htmlTeam.child(2).child(0).child(1).text();
+                if (name.equals("Manchester United")) {
+                    name = "Man Utd";
+                } else if (name.equals("Manchester City")) {
+                    name = "Man City";
+                } else if (name.equals("Wolverhampton Wanderers")) {
+                    name = "Wolves";
+                } else if (name.equals("West Ham United")) {
+                    name = "West Ham";
+                } else if (name.equals("Brighton and Hove Albion")) {
+                    name = "Brighton";
+                } else if (name.equals("Newcastle United")) {
+                    name = "Newcastle";
+                } else if (name.equals("Cardiff City")) {
+                    name = "Cardiff";
+                } else if (name.equals("Huddersfield Town")) {
+                    name = "Huddersfield";
+                } else if (name.equals("Tottenham Hotspur")) {
+                    name = "Tottenham";
+                } else if (name.equals("Leicester City")) {
+                    name = "Leicester";
+                }
+
+                String finalName = name;
+                Team team = teams.values().stream().filter(e -> e.getName().equals(finalName)).findFirst().get();
+
+                team.setPlayed(Integer.parseInt(htmlTeam.child(3).text()));
+                team.setWins(Integer.parseInt(htmlTeam.child(4).text()));
+                team.setDraws(Integer.parseInt(htmlTeam.child(5).text()));
+                team.setLosses(Integer.parseInt(htmlTeam.child(6).text()));
+                team.setGoalsFor(Integer.parseInt(htmlTeam.child(7).text()));
+                team.setGoalsAgainst(Integer.parseInt(htmlTeam.child(8).text()));
+                team.setPoints(Integer.parseInt(htmlTeam.child(10).text()));
+                team.setPositionChangeImage(position);
             }
 
         } catch (Exception e) {
@@ -217,32 +229,7 @@ public class TeamChecker {
         }
     }
 
-    public JSONArray makeLeagueRequest() {
-        try {
-            URL url = new URL(BASE_LEAGUE_URL + "");
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer content = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            in.close();
-
-            con.disconnect();
-            return new JSONArray(content.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public List<Team> getTeams() {
+    public Map<Integer, Team> getTeams() {
         return teams;
     }
 
@@ -250,7 +237,4 @@ public class TeamChecker {
         return gameWeeks;
     }
 
-    public List<LeagueTableTeam> getLeagueTableTeams() {
-        return leagueTableTeams;
-    }
 }

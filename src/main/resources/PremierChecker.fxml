@@ -138,5 +138,14 @@
             </ScrollPane>
          </content>
       </Tab>
+      <Tab text="Difficulty Matrix">
+         <content>
+            <ScrollPane fitToHeight="true" fitToWidth="true">
+               <content>
+                  <AnchorPane fx:id="difficultyPane" />
+               </content>
+            </ScrollPane>
+         </content>
+      </Tab>
    </tabs>
 </TabPane>
