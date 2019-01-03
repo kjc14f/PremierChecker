@@ -32,7 +32,6 @@ public class Controller {
     public static int GAMEDAYS = 8;
     public static int WEEK_OFFSET = 0;
     public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/drf/";
-    public static final String BASE_LEAGUE_URL = "https://fantasy.premierleague.com/drf/";
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm E dd/MM/yyyy");
 
     private List<Player> players;
@@ -40,25 +39,16 @@ public class Controller {
     @FXML
     private VBox teamsVBox;
     @FXML
-    private Label teamLabel;
+    private Label teamLabel, teamRatingsLabel;
     @FXML
-    private Label teamRatingsLabel;
+    private TitledPane strikersPane, midfieldersPane, defendersPane, goalkeepersPane;
     @FXML
-    private TitledPane strikersPane;
+    private TitledPane strikersPaneAll, midfieldersPaneAll, defendersPaneAll, goalkeepersPaneAll;
+    ;
     @FXML
-    private TitledPane midfieldersPane;
+    private TextField gameweeksBox, startingFromBox;
     @FXML
-    private TitledPane defendersPane;
-    @FXML
-    private TitledPane goalkeepersPane;
-    @FXML
-    private TextField gameweeksBox;
-    @FXML
-    private TextField startingFromBox;
-    @FXML
-    private AnchorPane leagueTablePane;
-    @FXML
-    private AnchorPane difficultyPane;
+    private AnchorPane leagueTablePane, difficultyPane, playersPane, positionPlayersPane;
 
     public Controller() {
         setupTeams();
@@ -67,10 +57,12 @@ public class Controller {
 
     public void setupTeams() {
 
-        Platform.runLater(() -> {
+        new Thread(() -> {
+
             TeamChecker teamChecker = new TeamChecker();
             Thread leagueThread = new Thread(() -> teamChecker.getLeaguePlaces());
             leagueThread.start();
+
             int gameWeeks = teamChecker.getGameWeeks();
 
             for (int i = 1; i <= GAMEDAYS; i++) {
@@ -82,9 +74,13 @@ public class Controller {
                 weekLabel.setFont(Font.font("Verdana", 16));
                 weekLabel.setTextFill(Color.BLUEVIOLET);
                 weekLabel.setStyle("-fx-font-color:blue");
-                teamsVBox.getChildren().add(weekLabel);
-                teamsVBox.getChildren().add(createTeamTable(teams));
-                teamsVBox.getChildren().add(new Separator());
+
+                Platform.runLater(() -> {
+                    teamsVBox.getChildren().add(weekLabel);
+                    teamsVBox.getChildren().add(createTeamTable(teams));
+                    teamsVBox.getChildren().add(new Separator());
+                });
+
                 gameWeeks++;
             }
 
@@ -93,20 +89,37 @@ public class Controller {
                 TableView<Team> leagueTable = createLeagueTeamTable(teamChecker.getTeams().values());
                 AnchorPane.setLeftAnchor(leagueTable, 0.0);
                 AnchorPane.setRightAnchor(leagueTable, 0.0);
-                leagueTablePane.getChildren().add(leagueTable);
+                Platform.runLater(() -> {
+                    leagueTablePane.getChildren().add(leagueTable);
+                });
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            difficultyPane.getChildren().add(createDifficultyTable(teamChecker.getTeams(), teamChecker.getGameWeeks()));
+            TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), teamChecker.getGameWeeks());
+            Platform.runLater(() -> difficultyPane.getChildren().add(difficultyTable));
 
-        });
+        }).start();
     }
 
     public void setupPlayers() {
         new Thread(() -> {
             TeamAdviser teamAdviser = new TeamAdviser();
             players = teamAdviser.getPlayers();
+
+            TableView<Player> playerTable = createPlayerTable(players);
+            TableView<Player> strikers = createPlayerPositionTable(players, 4, 200);
+            TableView<Player> midfielders = createPlayerPositionTable(players, 3, 300);
+            TableView<Player> defenders = createPlayerPositionTable(players, 2, 300);
+            TableView<Player> goalkeepers = createPlayerPositionTable(players, 1, 150);
+
+            Platform.runLater(() -> {
+                playersPane.getChildren().add(playerTable);
+                strikersPaneAll.setContent(strikers);
+                midfieldersPaneAll.setContent(midfielders);
+                defendersPaneAll.setContent(defenders);
+                goalkeepersPaneAll.setContent(goalkeepers);
+            });
         }).start();
     }
 
@@ -136,23 +149,42 @@ public class Controller {
                 .filter(p -> p.getTeam() == team.getId())
                 .collect(Collectors.toList());
 
-        TableView<Player> strikers = createGenericPlayerTable(teamPlayers, 4, 200);
+        TableView<Player> strikers = createPlayerPositionTable(teamPlayers, 4, 200);
         strikersPane.setContent(strikers);
 
-        TableView<Player> midfielders = createGenericPlayerTable(teamPlayers, 3, 300);
+        TableView<Player> midfielders = createPlayerPositionTable(teamPlayers, 3, 300);
         midfieldersPane.setContent(midfielders);
 
-        TableView<Player> defenders = createGenericPlayerTable(teamPlayers, 2, 300);
+        TableView<Player> defenders = createPlayerPositionTable(teamPlayers, 2, 300);
         defendersPane.setContent(defenders);
 
-        TableView<Player> goalkeepers = createGenericPlayerTable(teamPlayers, 1, 150);
+        TableView<Player> goalkeepers = createPlayerPositionTable(teamPlayers, 1, 150);
         goalkeepersPane.setContent(goalkeepers);
 
     }
 
-    public TableView<Player> createGenericPlayerTable(List<Player> players, int playerType, int prefHeight) {
-        TableView<Player> table = new TableView<>();
+    public TableView<Player> createPlayerPositionTable(List<Player> players, int playerType, int prefHeight) {
+
+        ObservableList<Player> observablePlayers = FXCollections.observableArrayList(players.stream()
+                .filter(p -> p.getPlayerType() == playerType)
+                .collect(Collectors.toList()));
+
+        TableView<Player> table = createGenericPlayerTable(observablePlayers);
         table.setPrefHeight(prefHeight);
+
+        return table;
+    }
+
+    public TableView<Player> createPlayerTable(List<Player> players) {
+
+        TableView<Player> table = createGenericPlayerTable(FXCollections.observableArrayList(players));
+        table.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+        return table;
+    }
+
+    private TableView<Player> createGenericPlayerTable(ObservableList<Player> players) {
+        TableView<Player> table = new TableView<>();
 
         TableColumn name = new TableColumn("Name");
         name.setCellValueFactory(new PropertyValueFactory<Player, String>("name"));
@@ -216,25 +248,20 @@ public class Controller {
                 costChange,
                 news
         );
-
-        ObservableList<Player> observablePlayers = FXCollections.observableArrayList(players.stream()
-                .filter(p -> p.getPlayerType() == playerType)
-                .collect(Collectors.toList()));
-
         table.setRowFactory(tv -> {
             final TableRow<Player> row = new TableRow<>() {
                 @Override
                 protected void updateItem(Player player, boolean empty) {
                     if (player != null) {
-                        if (player.getChancePlayingThis() == 75) {
-                            setStyle("-fx-background-color:lightyellow");
-                        } else if (player.getChancePlayingNext() == 75) {
+                        if (player.getChancePlayingNext() == 75) {
                             setStyle("-fx-background-color:yellow");
                         } else if ((player.getChancePlayingThis() > -1 && player.getChancePlayingThis() < 75) ||
                                 (player.getChancePlayingNext() > -1 && player.getChancePlayingNext() < 75)) {
                             setStyle("-fx-background-color:lightcoral");
+                        } else if (player.getChancePlayingThis() == 75) {
+                            setStyle("-fx-background-color:lightyellow");
                         } else {
-                            getStyleClass().removeAll();
+                            setStyle("");
                         }
                         super.updateItem(player, empty);
                     }
@@ -246,22 +273,22 @@ public class Controller {
                 row.setStyle("");
                 Player player = row.getItem();
                 if (player != null) {
-                    if (player.getChancePlayingThis() == 75) {
-                        row.setStyle("-fx-background-color:lightyellow");
-                    } else if (player.getChancePlayingNext() == 75) {
+                    if (player.getChancePlayingNext() == 75) {
                         row.setStyle("-fx-background-color:yellow");
                     } else if ((player.getChancePlayingThis() > -1 && player.getChancePlayingThis() < 75) ||
                             (player.getChancePlayingNext() > -1 && player.getChancePlayingNext() < 75)) {
                         row.setStyle("-fx-background-color:lightcoral");
+                    } else if (player.getChancePlayingThis() == 75) {
+                        row.setStyle("-fx-background-color:lightyellow");
                     } else {
-                        row.getStyleClass().removeAll();
+                        row.setStyle("");
                     }
                 }
             });
             return row;
         });
 
-        table.setItems(observablePlayers);
+        table.setItems(players);
         points.setSortType(TableColumn.SortType.DESCENDING);
         table.getSortOrder().add(points);
 
@@ -332,7 +359,6 @@ public class Controller {
 
         table.setItems(FXCollections.observableArrayList(teams));
         difficulty.setSortType(TableColumn.SortType.DESCENDING);
-        table.getSortOrder().add(difficulty);
 
         return table;
     }
@@ -422,15 +448,14 @@ public class Controller {
         difficulty.setEditable(true);
         table.getColumns().add(difficulty);
 
-        for (int i = 0; i < gameweeksRemaining; i++)  {
+        for (int i = 0; i < gameweeksRemaining; i++) {
             TableColumn<List<StringProperty>, String> column = new TableColumn("" + (gameweeks + i));
             column.setPrefWidth(50);
             int finalI = i + 4;
             column.setCellValueFactory(data -> data.getValue().get(finalI));
 
             int gameweekColumn = i;
-            column.setCellFactory(new Callback<TableColumn<List<StringProperty>, String>, TableCell<List<StringProperty>, String>>()
-            {
+            column.setCellFactory(new Callback<TableColumn<List<StringProperty>, String>, TableCell<List<StringProperty>, String>>() {
                 @Override
                 public TableCell<List<StringProperty>, String> call(
                         TableColumn<List<StringProperty>, String> param) {
@@ -483,7 +508,6 @@ public class Controller {
 
         table.setRowFactory(tv -> {
             final TableRow<List<StringProperty>> row = new TableRow<>();
-//            row.setStyle("-fx-padding: 10 10 10 10");
             row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:lightgreen"));
             row.setOnMouseExited(e -> row.setStyle(""));
             return row;

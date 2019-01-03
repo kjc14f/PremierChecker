@@ -147,5 +147,30 @@
             </ScrollPane>
          </content>
       </Tab>
+      <Tab text="All Players">
+         <content>
+            <ScrollPane fitToHeight="true" fitToWidth="true">
+               <content>
+                  <AnchorPane fx:id="playersPane" />
+               </content>
+            </ScrollPane>
+         </content>
+      </Tab>
+      <Tab text="All Position Players">
+         <content>
+            <ScrollPane fitToHeight="true" fitToWidth="true">
+               <content>
+                  <VBox minHeight="515.0" prefHeight="515.0" prefWidth="553.0">
+                     <children>
+                        <TitledPane fx:id="strikersPaneAll" animated="false" text="Strikers" VBox.vgrow="ALWAYS" />
+                        <TitledPane fx:id="midfieldersPaneAll" animated="false" text="Midfielders" />
+                        <TitledPane fx:id="defendersPaneAll" animated="false" text="Defenders" />
+                        <TitledPane fx:id="goalkeepersPaneAll" animated="false" text="Goalkeepers" />
+                     </children>
+                  </VBox>
+               </content>
+            </ScrollPane>
+         </content>
+      </Tab>
    </tabs>
 </TabPane>
