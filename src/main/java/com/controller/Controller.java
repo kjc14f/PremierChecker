@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -39,12 +40,11 @@ public class Controller {
     @FXML
     private VBox teamsVBox;
     @FXML
-    private Label teamLabel, teamRatingsLabel;
+    private Label teamLabel, teamRatingsLabel, selectedPlayers, totalValue, totalPoints;
     @FXML
     private TitledPane strikersPane, midfieldersPane, defendersPane, goalkeepersPane;
     @FXML
     private TitledPane strikersPaneAll, midfieldersPaneAll, defendersPaneAll, goalkeepersPaneAll;
-    ;
     @FXML
     private TextField gameweeksBox, startingFromBox;
     @FXML
@@ -291,6 +291,36 @@ public class Controller {
         table.setItems(players);
         points.setSortType(TableColumn.SortType.DESCENDING);
         table.getSortOrder().add(points);
+
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        ListChangeListener<Player> multiSelection = e -> {
+            double totalValueDouble = Double.parseDouble(totalValue.getText());
+            int totalPointsInt = Integer.parseInt(totalPoints.getText());
+            int selected = Integer.parseInt(selectedPlayers.getText());
+
+            e.next();
+
+                for (Player player : e.getAddedSubList()) {
+                    totalValueDouble += player.getCost();
+                    totalPointsInt += player.getPoints();
+                }
+                selected += e.getAddedSubList().size();
+
+                for (Player player : e.getRemoved()) {
+                    totalValueDouble -= player.getCost();
+                    totalPointsInt -= player.getPoints();
+                }
+                selected -= e.getRemoved().size();
+
+
+            totalValueDouble = Math.round(totalValueDouble * 100);
+            totalValueDouble /= 100;
+            totalValue.setText("" + totalValueDouble);
+            totalPoints.setText("" + totalPointsInt);
+            selectedPlayers.setText("" + selected);
+        };
+
+        table.getSelectionModel().getSelectedItems().addListener(multiSelection);
 
         return table;
 
