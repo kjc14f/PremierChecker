@@ -167,7 +167,7 @@
                            <items>
                               <Label text="Selected Players: " textFill="#046b1b" />
                               <Label fx:id="selectedPlayers" text="0" textFill="#046b1b" />
-                              <Label text="Total Value: " textFill="#046b1b">
+                              <Label text="Total Cost: " textFill="#046b1b">
                                  <padding>
                                     <Insets left="30.0" />
                                  </padding>
@@ -179,6 +179,18 @@
                                  </padding>
                               </Label>
                               <Label fx:id="totalPoints" text="0" textFill="#046b1b" />
+                              <Label text="Average Points: " textFill="#046b1b">
+                                 <padding>
+                                    <Insets left="30.0" />
+                                 </padding>
+                              </Label>
+                              <Label fx:id="averagePoints" text="0" textFill="#046b1b" />
+                              <Label text="Average Cost: " textFill="#046b1b">
+                                 <padding>
+                                    <Insets left="30.0" />
+                                 </padding>
+                              </Label>
+                              <Label fx:id="averageCost" text="0" textFill="#046b1b" />
                            </items>
                         </ToolBar>
                         <TitledPane fx:id="strikersPaneAll" animated="false" text="Strikers" VBox.vgrow="ALWAYS" />

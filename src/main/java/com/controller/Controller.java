@@ -34,13 +34,14 @@ public class Controller {
     public static int WEEK_OFFSET = 0;
     public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/drf/";
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm E dd/MM/yyyy");
+    private final int OPTIMAL_WEEKS = 5;
 
     private List<Player> players;
 
     @FXML
     private VBox teamsVBox;
     @FXML
-    private Label teamLabel, teamRatingsLabel, selectedPlayers, totalValue, totalPoints;
+    private Label teamLabel, teamRatingsLabel, selectedPlayers, totalValue, totalPoints, averagePoints, averageCost;
     @FXML
     private TitledPane strikersPane, midfieldersPane, defendersPane, goalkeepersPane;
     @FXML
@@ -48,7 +49,7 @@ public class Controller {
     @FXML
     private TextField gameweeksBox, startingFromBox;
     @FXML
-    private AnchorPane leagueTablePane, difficultyPane, playersPane, positionPlayersPane;
+    private AnchorPane leagueTablePane, difficultyPane, playersPane;
 
     public Controller() {
         setupTeams();
@@ -63,12 +64,18 @@ public class Controller {
             Thread leagueThread = new Thread(() -> teamChecker.getLeaguePlaces());
             leagueThread.start();
 
+            List<Team> optimalTeams = new ArrayList<>(4);
+
             int gameWeeks = teamChecker.getGameWeeks();
 
             for (int i = 1; i <= GAMEDAYS; i++) {
 
                 List<Team> teams = teamChecker.calculatePlays(i);
                 teamChecker.calculatePlaces(teams);
+
+                if (i == OPTIMAL_WEEKS) {
+                    optimalTeams.addAll(teams.subList(16, 20));
+                }
 
                 Label weekLabel = new Label((i + WEEK_OFFSET) + " - GAMEWEEK " + gameWeeks + "  **** " + formatter.format(teams.get(0).getFixtures().get(i - 1).getDeadlineTime()) + " ****");
                 weekLabel.setFont(Font.font("Verdana", 16));
@@ -96,7 +103,7 @@ public class Controller {
                 e.printStackTrace();
             }
 
-            TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), teamChecker.getGameWeeks());
+            TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), teamChecker.getGameWeeks(), optimalTeams);
             Platform.runLater(() -> difficultyPane.getChildren().add(difficultyTable));
 
         }).start();
@@ -210,6 +217,9 @@ public class Controller {
         TableColumn valueToMinutes = new TableColumn("Mins/Points");
         valueToMinutes.setCellValueFactory(new PropertyValueFactory<Player, String>("valueToMinutes"));
 
+        TableColumn weightedValue = new TableColumn("Weighted");
+        weightedValue.setCellValueFactory(new PropertyValueFactory<Player, String>("weightedValue"));
+
         TableColumn chancePlayingThis = new TableColumn("% Playing Last");
         chancePlayingThis.setCellValueFactory(new PropertyValueFactory<Player, String>("chancePlayingThis"));
 
@@ -231,6 +241,9 @@ public class Controller {
         TableColumn news = new TableColumn("News");
         news.setCellValueFactory(new PropertyValueFactory<Player, String>("news"));
 
+        TableColumn team = new TableColumn("Team ID");
+        team.setCellValueFactory(new PropertyValueFactory<Player, String>("team"));
+
         table.getColumns().addAll(
                 name,
                 points,
@@ -240,13 +253,15 @@ public class Controller {
                 valueToCost,
                 valueToICT,
                 valueToMinutes,
+                weightedValue,
                 chancePlayingThis,
                 chancePlayingNext,
                 form,
                 influence,
                 threat,
                 costChange,
-                news
+                news,
+                team
         );
         table.setRowFactory(tv -> {
             final TableRow<Player> row = new TableRow<>() {
@@ -318,6 +333,8 @@ public class Controller {
             totalValue.setText("" + totalValueDouble);
             totalPoints.setText("" + totalPointsInt);
             selectedPlayers.setText("" + selected);
+            averagePoints.setText("" + (selected == 0 ? 0 : (totalPointsInt / selected)));
+            averageCost.setText("" + (selected == 0 ? 0 : (totalValueDouble/selected)));
         };
 
         table.getSelectionModel().getSelectedItems().addListener(multiSelection);
@@ -454,7 +471,7 @@ public class Controller {
         return table;
     }
 
-    public TableView<List<StringProperty>> createDifficultyTable(Map<Integer, Team> teams, int gameweeks) {
+    public TableView<List<StringProperty>> createDifficultyTable(Map<Integer, Team> teams, int gameweeks, List<Team> optimalTeams) {
 
         TableView table = new TableView<>();
         table.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -504,10 +521,21 @@ public class Controller {
                                 } else if (item.equals("5")) {
                                     setStyle("-fx-background-color: #861d46");
                                 }
-                                setStyle(getStyle() + "; -fx-border-color: black");
+
                                 int id = Integer.parseInt(getTableRow().getItem().get(0).get());
                                 Fixture fix = teams.get(id).getFixtures().get(gameweekColumn);
                                 setTooltip(new Tooltip(fix.getHomeTeam() == id ? fix.getAwayTeamName() + " (A)" : fix.getHomeTeamName() + " (H)"));
+
+                                int index = table.getColumns().indexOf(getTableColumn());
+                                if (index > 3 && index < 9) {
+                                    for (Team team : optimalTeams) {
+                                        if (team.getId() == id) {
+                                            String colour = getStyle().substring(getStyle().length() - 7);
+                                            setStyle("-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, orange 25%, " + colour + " 47%)");
+                                        }
+                                    }
+                                }
+                                setStyle(getStyle() + "; -fx-border-color: black");
                             }
                         }
                     };

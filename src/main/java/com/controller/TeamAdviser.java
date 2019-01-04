@@ -56,9 +56,22 @@ public class TeamAdviser {
                 valueToMinute = 0;
             }
 
+            double weightedValue;
+            if (playerType == 1) { //Keeper
+                weightedValue = points / (cost - 4.4);
+            } else if (playerType == 2) { //Defender
+                weightedValue = points / (cost - 5);
+            } else if (playerType == 3) { //Midfielder
+                weightedValue = points / (cost - 7);
+            } else {
+                weightedValue = points / (cost - 7);
+            }
+            weightedValue = Math.round(weightedValue * 100);
+            weightedValue /= 100;
+
             players.add(new Player(name, cost, form, points, minutes, playerType, chancePlayingThis, chancePlayingNext,
                     costChange, influence, threat, ictIndex, team, news,
-                    valueToCost, valueToICT, valueToMinute));
+                    valueToCost, valueToICT, valueToMinute, weightedValue));
         }
     }
 
