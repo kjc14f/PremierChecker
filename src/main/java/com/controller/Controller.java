@@ -574,6 +574,7 @@ public class Controller {
         table.setStyle("-fx-border-color: red; -fx-table-cell-border-color:red");
         table.setFixedCellSize(40.0);
         table.setItems(data);
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         points.setSortType(TableColumn.SortType.DESCENDING);
         table.getSortOrder().add(points);

@@ -58,13 +58,13 @@ public class TeamAdviser {
 
             double weightedValue;
             if (playerType == 1) { //Keeper
-                weightedValue = points / (cost - 4.4);
+                weightedValue = points / (cost - 4);
             } else if (playerType == 2) { //Defender
                 weightedValue = points / (cost - 5);
             } else if (playerType == 3) { //Midfielder
                 weightedValue = points / (cost - 7);
             } else {
-                weightedValue = points / (cost - 7);
+                weightedValue = points / (cost - 6.5);
             }
             weightedValue = Math.round(weightedValue * 100);
             weightedValue /= 100;
