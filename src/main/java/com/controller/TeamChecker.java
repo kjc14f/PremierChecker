@@ -117,7 +117,7 @@ public class TeamChecker {
 
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
-            LocalDateTime deadline = LocalDateTime.parse(jo.getString("deadline_time"), formatter);
+            LocalDateTime deadline = LocalDateTime.parse(jo.optString("deadline_time", "2100-01-01T12:00:00Z"), formatter);
             int homeTeamID = jo.getInt("team_h");
             int awayTeamID = jo.getInt("team_a");
             Team homeTeam = teams.get(homeTeamID);
