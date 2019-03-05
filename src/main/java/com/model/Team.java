@@ -1,9 +1,12 @@
-package com.Model;
+package com.model;
 
 import javafx.scene.image.ImageView;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class Team {
 
@@ -17,7 +20,8 @@ public class Team {
     private int homeDefenseStrength;
     private int awayAttackStrength;
     private int awayDefenseStrength;
-    private List<Fixture> fixtures = new ArrayList<>();
+    private List<Fixture> allFixtures = new ArrayList<>();
+    private Map<LocalDateTime, List<Fixture>> groupedFixtures = new TreeMap<>();
     private int strengthTotal;
     private int difficultyTotal;
     private int differenceDifficulty;
@@ -49,7 +53,7 @@ public class Team {
         this.awayDefenseStrength = awayDefenseStrength;
     }
 
-    public Team(int id, String name, String shortName, int strength, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength, List<Fixture> fixtures, int strengthTotal, int difficultyTotal, int differenceDifficulty, int place, int outOfPlace) {
+    public Team(int id, String name, String shortName, int strength, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength, Map<LocalDateTime, List<Fixture>> groupedFixtures, int strengthTotal, int difficultyTotal, int differenceDifficulty, int place, int outOfPlace) {
         this.id = id;
         this.name = name;
         this.shortName = shortName;
@@ -60,7 +64,7 @@ public class Team {
         this.homeDefenseStrength = homeDefenseStrength;
         this.awayAttackStrength = awayAttackStrength;
         this.awayDefenseStrength = awayDefenseStrength;
-        this.fixtures = fixtures;
+        this.groupedFixtures = groupedFixtures;
         this.strengthTotal = strengthTotal;
         this.difficultyTotal = difficultyTotal;
         this.differenceDifficulty = differenceDifficulty;
@@ -79,7 +83,7 @@ public class Team {
                 team.getHomeDefenseStrength(),
                 team.getAwayAttackStrength(),
                 team.getAwayDefenseStrength(),
-                team.getFixtures(),
+                team.getGroupedFixtures(),
                 team.getStrengthTotal(),
                 team.getDifficultyTotal(),
                 team.getDifferenceDifficulty(),
@@ -167,12 +171,20 @@ public class Team {
         this.awayDefenseStrength = awayDefenseStrength;
     }
 
-    public List<Fixture> getFixtures() {
-        return fixtures;
+    public List<Fixture> getAllFixtures() {
+        return allFixtures;
     }
 
-    public void setFixtures(List<Fixture> fixtures) {
-        this.fixtures = fixtures;
+    public void setAllFixtures(List<Fixture> allFixtures) {
+        this.allFixtures = allFixtures;
+    }
+
+    public Map<LocalDateTime, List<Fixture>> getGroupedFixtures() {
+        return groupedFixtures;
+    }
+
+    public void setGroupedFixtures(Map<LocalDateTime, List<Fixture>> groupedFixtures) {
+        this.groupedFixtures = groupedFixtures;
     }
 
     public int getStrengthTotal() {

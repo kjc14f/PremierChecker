@@ -1,6 +1,6 @@
 package com.controller;
 
-import com.Model.Player;
+import com.model.Player;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

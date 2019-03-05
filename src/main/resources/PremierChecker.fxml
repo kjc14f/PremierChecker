@@ -31,7 +31,7 @@
                                     <Insets top="3.0" />
                                  </padding>
                               </Label>
-                              <TextField fx:id="gameweeksBox" layoutX="81.0" onAction="#gameWeeksUpdate" prefHeight="25.0" prefWidth="42.0" />
+                              <TextField fx:id="gameweeksBox" layoutX="81.0" onAction="#gameWeeksUpdate" prefHeight="25.0" prefWidth="42.0" text="8" />
                            </children>
                         </AnchorPane>
                         <AnchorPane>
@@ -41,7 +41,7 @@
                                     <Insets top="3.0" />
                                  </padding>
                               </Label>
-                              <TextField fx:id="startingFromBox" layoutX="79.0" onAction="#startingFromUpdate" prefHeight="25.0" prefWidth="42.0">
+                              <TextField fx:id="startingFromBox" layoutX="79.0" onAction="#startingFromUpdate" prefHeight="25.0" prefWidth="42.0" text="1">
                                  <opaqueInsets>
                                     <Insets />
                                  </opaqueInsets>

@@ -1,8 +1,8 @@
 package com.controller;
 
-import com.Model.Fixture;
-import com.Model.Player;
-import com.Model.Team;
+import com.model.Fixture;
+import com.model.Player;
+import com.model.Team;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.Main.SCREEN_HEIGHT;
@@ -77,7 +78,7 @@ public class Controller {
                     optimalTeams.addAll(teams.subList(16, 20));
                 }
 
-                Label weekLabel = new Label((i + WEEK_OFFSET) + " - GAMEWEEK " + gameWeeks + "  **** " + formatter.format(teams.get(0).getFixtures().get(i - 1).getDeadlineTime()) + " ****");
+                Label weekLabel = new Label((i + WEEK_OFFSET) + " - GAMEWEEK " + gameWeeks + "  **** " + teams.get(0).getGroupedFixtures().keySet().toArray()[i - 1] + " ****");
                 weekLabel.setFont(Font.font("Verdana", 16));
                 weekLabel.setTextFill(Color.BLUEVIOLET);
                 weekLabel.setStyle("-fx-font-color:blue");
@@ -146,8 +147,10 @@ public class Controller {
 
     public void teamClick(Team team) {
         String fixtures = "";
-        for (Fixture fix : team.getFixtures()) {
-            fixtures += (fix.getHomeTeam() == team.getId() ? fix.getAwayTeamName() : fix.getHomeTeamName()) + ", ";
+        for (List<Fixture> fixList : team.getGroupedFixtures().values()) {
+            for (Fixture fix : fixList) {
+                fixtures += (fix.getHomeTeam() == team.getId() ? fix.getAwayTeamName() : fix.getHomeTeamName()) + ", ";
+            }
         }
 
         teamLabel.setText(team.getName().substring(0, team.getName().length() - 4) + " - " + fixtures);
@@ -510,28 +513,38 @@ public class Controller {
                         @Override
                         protected void updateItem(String item, boolean empty) {
                             if (!empty) {
-                                if (item.equals("1")) {
-                                    setStyle("-fx-background-color: #00910e");
-                                } else if (item.equals("2")) {
-                                    setStyle("-fx-background-color: #00ff86");
-                                } else if (item.equals("3")) {
-                                    setStyle("-fx-background-color: #ebebe4");
-                                } else if (item.equals("4")) {
-                                    setStyle("-fx-background-color: #ff005a");
-                                } else if (item.equals("5")) {
-                                    setStyle("-fx-background-color: #861d46");
+                                if (item.contains("|")) {
+                                    String[] parts = item.split(Pattern.quote("|"));
+                                    String colour1 = getColour(parts[0]);
+                                    String colour2 = getColour(parts[1]);
+                                    setStyle(makeDoubleCss(colour1, colour2));
+                                } else {
+                                   setStyle(makeSingleCss(getColour(item)));
                                 }
 
                                 int id = Integer.parseInt(getTableRow().getItem().get(0).get());
-                                Fixture fix = teams.get(id).getFixtures().get(gameweekColumn);
-                                setTooltip(new Tooltip(fix.getHomeTeam() == id ? fix.getAwayTeamName() + " (A)" : fix.getHomeTeamName() + " (H)"));
+                                List<Fixture> fixList = (List<Fixture>) teams.get(id).getGroupedFixtures().values().toArray()[gameweekColumn];
+                                String tooltipText = "";
+                                for (Fixture fix : fixList) {
+                                    if (!tooltipText.equals("")) tooltipText += "  |  ";
+                                    tooltipText += fix.getHomeTeam() == id ? fix.getAwayTeamName() + " (A)" : fix.getHomeTeamName() + " (H)";
+                                }
+                                setTooltip(new Tooltip(tooltipText.equals("") ? "BLANK" : tooltipText));
 
                                 int index = table.getColumns().indexOf(getTableColumn());
                                 if (index > 3 && index < 9) {
                                     for (Team team : optimalTeams) {
                                         if (team.getId() == id) {
-                                            String colour = getStyle().substring(getStyle().length() - 7);
-                                            setStyle("-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, orange 25%, " + colour + " 47%)");
+                                            if (getStyle().contains("%")) {
+                                                String colour1 = getStyle().substring(getStyle().length() - 12, getStyle().length() - 5);
+                                                String colour2 = getStyle().substring(getStyle().length() - 25, getStyle().length() - 18);
+//                                                String colour1 = getStyle().substring(getStyle().length() - 13, getStyle().length() - 6);
+//                                                String colour2 = getStyle().substring(getStyle().length() - 39, getStyle().length() - 32);
+                                                setStyle("-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, " + colour1 + " 30%, orange 47%, " + colour2 + " 60%);");
+                                            } else {
+                                                String colour = getStyle().substring(getStyle().length() - 7);
+                                                setStyle("-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, orange 25%, " + colour + " 47%);");
+                                            }
                                         }
                                     }
                                 }
@@ -556,9 +569,18 @@ public class Controller {
             rowCells.add(3, new SimpleStringProperty("" + team.getStrength()));
 
             for (int i = 0; i < gameweeksRemaining; i++) {
-                Fixture fix = team.getFixtures().get(i);
+                List<Fixture> fixList = (List<Fixture>)team.getGroupedFixtures().values().toArray()[i];
 
-                rowCells.add(i + 4, new SimpleStringProperty("" + (fix.getHomeTeam() == team.getId() ? fix.getHomeDifficulty() : fix.getAwayDifficulty())));
+                String cellValue = "";
+                for (int j = 0; j < fixList.size(); j++) {
+                    if (j == 1) {
+                        cellValue += "|";
+                    }
+                    Fixture fix = fixList.get(j);
+                    cellValue += fix.getHomeTeam() == team.getId() ? fix.getHomeDifficulty() : fix.getAwayDifficulty();
+                }
+                if (cellValue.equals("")) cellValue = "6";
+                rowCells.add(i + 4, new SimpleStringProperty(cellValue));
 
             }
             data.add(rowCells);
@@ -566,12 +588,12 @@ public class Controller {
 
         table.setRowFactory(tv -> {
             final TableRow<List<StringProperty>> row = new TableRow<>();
-            row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:lightgreen"));
+            row.setOnMouseEntered(e -> row.setStyle("-fx-background-color:lightgreen;"));
             row.setOnMouseExited(e -> row.setStyle(""));
             return row;
         });
 
-        table.setStyle("-fx-border-color: red; -fx-table-cell-border-color:red");
+        table.setStyle("-fx-border-color: red; -fx-table-cell-border-color:red;");
         table.setFixedCellSize(40.0);
         table.setItems(data);
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -580,6 +602,32 @@ public class Controller {
         table.getSortOrder().add(points);
 
         return table;
+    }
+
+    public String getColour(String item) {
+        if (item.equals("1")) {
+            return "#00910e";
+        } else if (item.equals("2")) {
+           return "#00ff86";
+        } else if (item.equals("3")) {
+           return "#ebebe4";
+        } else if (item.equals("4")) {
+           return "#ff005a";
+        } else if (item.equals("5")) {
+           return "#861d46";
+        } else if (item.equals("6")) {
+           return "#000000";
+        }
+        return "#0f5cd8";
+    }
+
+    public String makeSingleCss(String colour1) {
+        return "-fx-background-color: " + colour1;
+    }
+
+    public String makeDoubleCss(String colour1, String colour2) {
+        //return "-fx-background-color: linear-gradient(from 0px 0px to 50px 0px, " + colour1 + " 0%, " + colour1 + " 50%, " + colour2 + " 50%, " + colour2 + " 100%)";
+        return "-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, " + colour1 + " 40%, " + colour2 + " 60%)";
     }
 
 }

@@ -1,7 +1,7 @@
 package com.controller;
 
-import com.Model.Fixture;
-import com.Model.Team;
+import com.model.Fixture;
+import com.model.Team;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.json.JSONArray;
@@ -18,12 +18,15 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.controller.Controller.*;
+import static com.controller.Controller.BASE_FPL_URL;
+import static com.controller.Controller.WEEK_OFFSET;
 
 public class TeamChecker {
 
     private Map<Integer, Team> teams = new HashMap<>();
+    Map<LocalDateTime, List<Fixture>> gameweeks = new TreeMap<>();
     private int gameWeeks = 0;
 
     public TeamChecker() {
@@ -58,19 +61,32 @@ public class TeamChecker {
             int difficultyTotal = 0;
             int differenceDifficulty = 0;
             for (int i = 0; i < future; i++) {
-                Fixture fix = team.getFixtures().get(i);
-                strengthTotal += fix.getHomeTeam() == team.getId() ? team.getHomeStrength() : team.getAwayStrength();
-                difficultyTotal += fix.getHomeTeam() == team.getId() ? fix.getHomeDifficulty() : fix.getAwayDifficulty();
-                differenceDifficulty += fix.getHomeTeam() == team.getId() ? fix.getAwayDifficulty() - fix.getHomeDifficulty() : fix.getHomeDifficulty() - fix.getAwayDifficulty();
-
+                List<Fixture> fix = (List<Fixture>) team.getGroupedFixtures().values().toArray()[i];
+                if (fix.isEmpty()) {
+                    strengthTotal += 1000;
+                    difficultyTotal += 6;
+                    differenceDifficulty += 0;
+                } else {
+                    for (Fixture singleFix : fix) {
+                        strengthTotal += singleFix.getHomeTeam() == team.getId() ? team.getHomeStrength() : team.getAwayStrength();
+                        difficultyTotal += singleFix.getHomeTeam() == team.getId() ? singleFix.getHomeDifficulty() : singleFix.getAwayDifficulty();
+                        differenceDifficulty += singleFix.getHomeTeam() == team.getId() ? singleFix.getAwayDifficulty() - singleFix.getHomeDifficulty() : singleFix.getHomeDifficulty() - singleFix.getAwayDifficulty();
+                    }
+                }
             }
-            Fixture weeklyFix = team.getFixtures().get(future - 1);
-            if (weeklyFix.getHomeTeam() == team.getId()) {
-                team.setName(team.getName() + " (H)");
-                team.setWeeklyFixture(weeklyFix.getAwayTeamName() + " (+" + weeklyFix.getHomeDifficulty() + ")");
+            List<Fixture> weeklyFix = (List<Fixture>) team.getGroupedFixtures().values().toArray()[future - 1];
+            if (weeklyFix.isEmpty()) {
+                team.setWeeklyFixture("BLANK");
             } else {
-                team.setName(team.getName() + " (A)");
-                team.setWeeklyFixture(weeklyFix.getHomeTeamName() + " (+" + weeklyFix.getAwayDifficulty() + ")");
+                for (Fixture fix : weeklyFix) {
+                    if (fix.getHomeTeam() == team.getId()) {
+                        team.setName(team.getName() + " (H)");
+                        team.setWeeklyFixture(fix.getAwayTeamName() + " (+" + fix.getHomeDifficulty() + ")");
+                    } else {
+                        team.setName(team.getName() + " (A)");
+                        team.setWeeklyFixture(fix.getHomeTeamName() + " (+" + fix.getAwayDifficulty() + ")");
+                    }
+                }
             }
 
             team.setStrengthTotal(strengthTotal);
@@ -108,7 +124,7 @@ public class TeamChecker {
         }
     }
 
-    private List<Fixture> extractFixtures() {
+    private void extractFixtures() {
         JSONArray ja = makeFPLRequest("fixtures");
         List<Fixture> fixtures = new ArrayList<>();
 
@@ -128,8 +144,9 @@ public class TeamChecker {
                 int awayDifficulty = jo.getInt("team_a_difficulty");
                 Fixture fix = new Fixture(homeTeamID, awayTeamID, deadline, homeDifficulty, awayDifficulty, homeTeam.getName(), awayTeam.getName());
                 fixtures.add(fix);
-                homeTeam.getFixtures().add(fix);
-                awayTeam.getFixtures().add(fix);
+                homeTeam.getAllFixtures().add(fix);
+                awayTeam.getAllFixtures().add(fix);
+
             } else {
                 if (!jo.isNull("team_a_score") && jo.getInt("team_a_score") == 0) homeTeam.setCleanSheets(homeTeam.getCleanSheets() + 1);
                 if (!jo.isNull("team_h_score") && jo.getInt("team_h_score") == 0) awayTeam.setCleanSheets(awayTeam.getCleanSheets() + 1);
@@ -138,7 +155,15 @@ public class TeamChecker {
         }
         gameWeeks = (gameWeeks / 10) + 1;
         Collections.sort(fixtures, Comparator.comparing(Fixture::getDeadlineTime));
-        return fixtures;
+        Map<LocalDateTime, List<Fixture>> mixedGameweeks = new TreeMap<>(fixtures.stream().collect(Collectors.groupingBy(e -> e.getDeadlineTime())));
+
+        for (Map.Entry<LocalDateTime, List<Fixture>> gameweek : mixedGameweeks.entrySet()) {
+            for (Team team : teams.values()) {
+                team.getGroupedFixtures().put(gameweek.getKey(), new ArrayList<>());
+                team.getGroupedFixtures().put(gameweek.getKey(), gameweek.getValue().stream().filter(e -> e.getAwayTeam() == team.getId() || e.getHomeTeam() == team.getId()).collect(Collectors.toList()));
+            }
+        }
+
     }
 
     private JSONArray makeFPLRequest(String parameter) {
