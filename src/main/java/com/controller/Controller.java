@@ -267,7 +267,7 @@ public class Controller {
                 team
         );
         table.setRowFactory(tv -> {
-            final TableRow<Player> row = new TableRow<>() {
+            final TableRow<Player> row = new TableRow<Player>() {
                 @Override
                 protected void updateItem(Player player, boolean empty) {
                     if (player != null) {
@@ -522,7 +522,7 @@ public class Controller {
                                    setStyle(makeSingleCss(getColour(item)));
                                 }
 
-                                int id = Integer.parseInt(getTableRow().getItem().get(0).get());
+                                int id = Integer.parseInt(((ArrayList<SimpleStringProperty>)(getTableRow().getTableView().getItems().get(0))).get(0).get());
                                 List<Fixture> fixList = (List<Fixture>) teams.get(id).getGroupedFixtures().values().toArray()[gameweekColumn];
                                 String tooltipText = "";
                                 for (Fixture fix : fixList) {
