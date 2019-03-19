@@ -4,15 +4,11 @@ import com.model.Player;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.controller.Controller.BASE_FPL_URL;
+import static com.controller.FPLUtil.makeFPLRequest;
 
 public class TeamAdviser {
 
@@ -23,7 +19,7 @@ public class TeamAdviser {
     }
 
     private void processPlayers() {
-        JSONArray ja = makeRequest("elements");
+        JSONArray ja = makeFPLRequest("elements");
 
         for (Object obj : ja) {
             JSONObject jo = (JSONObject)obj;
@@ -73,31 +69,6 @@ public class TeamAdviser {
                     costChange, influence, threat, ictIndex, team, news,
                     valueToCost, valueToICT, valueToMinute, weightedValue));
         }
-    }
-
-    private JSONArray makeRequest(String parameter) {
-        try {
-            URL url = new URL(BASE_FPL_URL + parameter);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer content = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            in.close();
-
-            con.disconnect();
-            return new JSONArray(content.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     public List<Player> getPlayers() {

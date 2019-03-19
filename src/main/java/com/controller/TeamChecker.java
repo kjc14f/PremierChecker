@@ -11,23 +11,20 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.controller.Controller.BASE_FPL_URL;
-import static com.controller.Controller.WEEK_OFFSET;
+import static com.Main.DUMMY;
+import static com.controller.Controller.*;
+import static com.controller.FPLUtil.makeFPLRequest;
 
 public class TeamChecker {
 
     private Map<Integer, Team> teams = new HashMap<>();
     Map<LocalDateTime, List<Fixture>> gameweeks = new TreeMap<>();
-    private int gameWeeks = 0;
 
     public TeamChecker() {
         processTeams();
@@ -128,7 +125,7 @@ public class TeamChecker {
         JSONArray ja = makeFPLRequest("fixtures");
         List<Fixture> fixtures = new ArrayList<>();
 
-        LocalDateTime now = LocalDateTime.now().plusWeeks(WEEK_OFFSET);
+        LocalDateTime now = DUMMY ? LocalDateTime.parse("2018-01-01T00:00:00"): LocalDateTime.now().plusWeeks(WEEK_OFFSET);
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssz");
 
         for (Object obj : ja) {
@@ -150,10 +147,10 @@ public class TeamChecker {
             } else {
                 if (!jo.isNull("team_a_score") && jo.getInt("team_a_score") == 0) homeTeam.setCleanSheets(homeTeam.getCleanSheets() + 1);
                 if (!jo.isNull("team_h_score") && jo.getInt("team_h_score") == 0) awayTeam.setCleanSheets(awayTeam.getCleanSheets() + 1);
-                gameWeeks++;
+                CURRENT_GAMEWEEK++;
             }
         }
-        gameWeeks = (gameWeeks / 10) + 1;
+        CURRENT_GAMEWEEK = (CURRENT_GAMEWEEK / 10) + 1;
         Collections.sort(fixtures, Comparator.comparing(Fixture::getDeadlineTime));
         Map<LocalDateTime, List<Fixture>> mixedGameweeks = new TreeMap<>(fixtures.stream().collect(Collectors.groupingBy(e -> e.getDeadlineTime())));
 
@@ -164,37 +161,16 @@ public class TeamChecker {
             }
         }
 
-    }
-
-    private JSONArray makeFPLRequest(String parameter) {
-        try {
-            URL url = new URL(BASE_FPL_URL + parameter);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer content = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            in.close();
-
-            con.disconnect();
-            return new JSONArray(content.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (GAMEDAYS + CURRENT_GAMEWEEK > 38) {
+            GAMEDAYS = 38 - CURRENT_GAMEWEEK;
         }
 
-        return null;
     }
 
     public void getLeaguePlaces() {
 
         try {
-            Document doc = Jsoup.connect("https://www.premierleague.com/tables").get();
+            Document doc = DUMMY ? Jsoup.parse(new File(this.getClass().getClassLoader().getResource("historical/table.html").getFile()), "UTF-8", "http://example.com/") : Jsoup.connect("https://www.premierleague.com/tables").get();
             Elements tableRows = doc.getElementsByTag("tbody").get(0).children();
 
             for (int i = 0; i < tableRows.size(); i += 2) {
@@ -256,10 +232,6 @@ public class TeamChecker {
 
     public Map<Integer, Team> getTeams() {
         return teams;
-    }
-
-    public int getGameWeeks() {
-        return gameWeeks;
     }
 
 }

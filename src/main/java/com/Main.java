@@ -12,6 +12,7 @@ public class Main extends Application {
 
     public static double SCREEN_WIDTH;
     public static double SCREEN_HEIGHT;
+    public static boolean DUMMY = false;
 
     public static void main(String[] args) {
         launch(args);

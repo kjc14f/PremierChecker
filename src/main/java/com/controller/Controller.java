@@ -18,7 +18,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,8 +32,8 @@ public class Controller {
 
     public static int GAMEDAYS = 8;
     public static int WEEK_OFFSET = 0;
+    public static int CURRENT_GAMEWEEK = 0;
     public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/drf/";
-    public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm E dd/MM/yyyy");
     private final int OPTIMAL_WEEKS = 5;
 
     private List<Player> players;
@@ -62,12 +61,13 @@ public class Controller {
         new Thread(() -> {
 
             TeamChecker teamChecker = new TeamChecker();
+
             Thread leagueThread = new Thread(() -> teamChecker.getLeaguePlaces());
             leagueThread.start();
 
             List<Team> optimalTeams = new ArrayList<>(4);
 
-            int gameWeeks = teamChecker.getGameWeeks();
+            int gameWeeks = CURRENT_GAMEWEEK;
 
             for (int i = 1; i <= GAMEDAYS; i++) {
 
@@ -104,7 +104,7 @@ public class Controller {
                 e.printStackTrace();
             }
 
-            TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), teamChecker.getGameWeeks(), optimalTeams);
+            TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), CURRENT_GAMEWEEK, optimalTeams);
             Platform.runLater(() -> difficultyPane.getChildren().add(difficultyTable));
 
         }).start();
@@ -135,6 +135,7 @@ public class Controller {
         teamsVBox.getChildren().removeAll(teamsVBox.getChildren());
         teamsVBox.getChildren().add(teamRatingsLabel);
         GAMEDAYS = Integer.parseInt(gameweeksBox.getText());
+
         setupTeams();
     }
 
@@ -522,7 +523,7 @@ public class Controller {
                                    setStyle(makeSingleCss(getColour(item)));
                                 }
 
-                                int id = Integer.parseInt(((ArrayList<SimpleStringProperty>)(getTableRow().getTableView().getItems().get(0))).get(0).get());
+                                int id = Integer.parseInt(((StringProperty)((ArrayList)getTableRow().getItem()).get(0)).get());
                                 List<Fixture> fixList = (List<Fixture>) teams.get(id).getGroupedFixtures().values().toArray()[gameweekColumn];
                                 String tooltipText = "";
                                 for (Fixture fix : fixList) {
