@@ -628,7 +628,6 @@ public class Controller {
 
     public String makeDoubleCss(String colour1, String colour2) {
         //return "-fx-background-color: linear-gradient(from 0px 0px to 50px 0px, " + colour1 + " 0%, " + colour1 + " 50%, " + colour2 + " 50%, " + colour2 + " 100%)";
-        return "-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, " + colour1 + " 40%, " + colour2 + " 60%)";
+        return "-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, " + colour1 + " 45%, black 50%, " + colour2 + " 55%)";
     }
-
 }
