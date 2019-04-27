@@ -34,8 +34,8 @@ public class Team {
     private int wins;
     private int draws;
     private int losses;
-    private int goalsFor;
-    private int goalsAgainst;
+    private int goalsScored;
+    private int goalsConceded;
     private int points;
     private ImageView positionChangeImage;
     private int cleanSheets;
@@ -267,20 +267,20 @@ public class Team {
         this.losses = losses;
     }
 
-    public int getGoalsFor() {
-        return goalsFor;
+    public int getGoalsScored() {
+        return goalsScored;
     }
 
-    public void setGoalsFor(int goalsFor) {
-        this.goalsFor = goalsFor;
+    public void setGoalsScored(int goalsScored) {
+        this.goalsScored = goalsScored;
     }
 
-    public int getGoalsAgainst() {
-        return goalsAgainst;
+    public int getGoalsConceded() {
+        return goalsConceded;
     }
 
-    public void setGoalsAgainst(int goalsAgainst) {
-        this.goalsAgainst = goalsAgainst;
+    public void setGoalsConceded(int goalsConceded) {
+        this.goalsConceded = goalsConceded;
     }
 
     public int getPoints() {

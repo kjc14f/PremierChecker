@@ -104,7 +104,7 @@ public class Controller {
                 e.printStackTrace();
             }
 
-            TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), CURRENT_GAMEWEEK, optimalTeams);
+            TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), optimalTeams);
             Platform.runLater(() -> difficultyPane.getChildren().add(difficultyTable));
 
         }).start();
@@ -439,11 +439,11 @@ public class Controller {
         TableColumn losses = new TableColumn("Losses");
         losses.setCellValueFactory(new PropertyValueFactory<Team, String>("losses"));
 
-        TableColumn goalsFor = new TableColumn("Goals For");
-        goalsFor.setCellValueFactory(new PropertyValueFactory<Team, String>("goalsFor"));
+        TableColumn goalsScored = new TableColumn("Goals Scored");
+        goalsScored.setCellValueFactory(new PropertyValueFactory<Team, String>("goalsScored"));
 
-        TableColumn goalsAgainst = new TableColumn("Goals Against");
-        goalsAgainst.setCellValueFactory(new PropertyValueFactory<Team, String>("goalsAgainst"));
+        TableColumn goalsConceded = new TableColumn("Goals Conceded");
+        goalsConceded.setCellValueFactory(new PropertyValueFactory<Team, String>("goalsConceded"));
 
         TableColumn cleanSheets = new TableColumn("Clean Sheets");
         cleanSheets.setCellValueFactory(new PropertyValueFactory<Team, String>("cleanSheets"));
@@ -456,8 +456,8 @@ public class Controller {
                 wins,
                 draws,
                 losses,
-                goalsFor,
-                goalsAgainst,
+                goalsScored,
+                goalsConceded,
                 cleanSheets
         );
 
@@ -475,12 +475,12 @@ public class Controller {
         return table;
     }
 
-    public TableView<List<StringProperty>> createDifficultyTable(Map<Integer, Team> teams, int gameweeks, List<Team> optimalTeams) {
+    public TableView<List<StringProperty>> createDifficultyTable(Map<Integer, Team> teams, List<Team> optimalTeams) {
 
         TableView table = new TableView<>();
         table.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-        int gameweeksRemaining = 38 - gameweeks;
+        int gameweeksRemaining = (38 - CURRENT_GAMEWEEK) + 1;
 
         TableColumn<List<StringProperty>, String> id = new TableColumn("ID");
         id.setCellValueFactory(data -> data.getValue().get(0));
@@ -500,7 +500,7 @@ public class Controller {
         table.getColumns().add(difficulty);
 
         for (int i = 0; i < gameweeksRemaining; i++) {
-            TableColumn<List<StringProperty>, String> column = new TableColumn("" + (gameweeks + i));
+            TableColumn<List<StringProperty>, String> column = new TableColumn("" + (CURRENT_GAMEWEEK + i));
             column.setPrefWidth(50);
             int finalI = i + 4;
             column.setCellValueFactory(data -> data.getValue().get(finalI));

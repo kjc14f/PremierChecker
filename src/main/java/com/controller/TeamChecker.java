@@ -162,7 +162,7 @@ public class TeamChecker {
         }
 
         if (GAMEDAYS + CURRENT_GAMEWEEK > 38) {
-            GAMEDAYS = 38 - CURRENT_GAMEWEEK;
+            GAMEDAYS = (38 - CURRENT_GAMEWEEK) + 1;
         }
 
     }
@@ -219,8 +219,8 @@ public class TeamChecker {
                 team.setWins(Integer.parseInt(htmlTeam.child(4).text()));
                 team.setDraws(Integer.parseInt(htmlTeam.child(5).text()));
                 team.setLosses(Integer.parseInt(htmlTeam.child(6).text()));
-                team.setGoalsFor(Integer.parseInt(htmlTeam.child(7).text()));
-                team.setGoalsAgainst(Integer.parseInt(htmlTeam.child(8).text()));
+                team.setGoalsScored(Integer.parseInt(htmlTeam.child(7).text()));
+                team.setGoalsConceded(Integer.parseInt(htmlTeam.child(8).text()));
                 team.setPoints(Integer.parseInt(htmlTeam.child(10).text()));
                 team.setPositionChangeImage(position);
             }
