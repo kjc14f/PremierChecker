@@ -125,12 +125,17 @@ public class TeamChecker {
         JSONArray ja = makeFPLRequest("fixtures");
         List<Fixture> fixtures = new ArrayList<>();
 
+        TimeZone timeZone = Calendar.getInstance().getTimeZone();
+
         LocalDateTime now = DUMMY ? LocalDateTime.parse("2018-01-01T00:00:00"): LocalDateTime.now().plusWeeks(WEEK_OFFSET);
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssz");
 
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
             LocalDateTime deadline = LocalDateTime.parse(jo.optString("deadline_time", "2100-01-01T12:00:00Z"), formatter);
+            if (timeZone.getDisplayName().equals("Greenwich Mean Time")) {
+                deadline = deadline.plusHours(1);
+            }
             int homeTeamID = jo.getInt("team_h");
             int awayTeamID = jo.getInt("team_a");
             Team homeTeam = teams.get(homeTeamID);
