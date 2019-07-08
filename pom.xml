@@ -6,7 +6,10 @@
 
     <groupId>PremierChecker</groupId>
     <artifactId>PremierChecker</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
+    <modules>
+        <module>PreSeasonCalculator</module>
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -33,6 +36,11 @@
 </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

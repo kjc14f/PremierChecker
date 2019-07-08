@@ -2,6 +2,7 @@ package com.controller;
 
 import com.model.Fixture;
 import com.model.Player;
+import com.model.PlayerValue;
 import com.model.Team;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -17,6 +18,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,21 +28,24 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.Main.SCREEN_HEIGHT;
-import static com.Main.SCREEN_WIDTH;
+import static com.Main.*;
+import static com.controller.FPLUtil.makeFPLRequest;
 
 public class Controller {
 
     public static int GAMEDAYS = 8;
     public static int WEEK_OFFSET = 0;
     public static int CURRENT_GAMEWEEK = 0;
-    public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/drf/";
+    public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/api/";
+    public static final JSONObject FPL_DATA = (JSONObject) makeFPLRequest("bootstrap-static", false);
     private final int OPTIMAL_WEEKS = 5;
 
-    private List<Player> players;
+    private Map<Integer, Player> players;
 
     @FXML
-    private VBox teamsVBox;
+    private ScrollPane preSeasonGoodValue;
+    @FXML
+    private VBox teamsVBox, preSeasonBadValue;
     @FXML
     private Label teamLabel, teamRatingsLabel, selectedPlayers, totalValue, totalPoints, averagePoints, averageCost;
     @FXML
@@ -113,21 +119,38 @@ public class Controller {
     public void setupPlayers() {
         new Thread(() -> {
             TeamAdviser teamAdviser = new TeamAdviser();
-            players = teamAdviser.getPlayers();
+//            players = teamAdviser.getPlayers();
+//
+//            TableView<Player> playerTable = createPlayerTable(players.values());
+//            TableView<Player> strikers = createPlayerPositionTable(players.values(), 4, 200);
+//            TableView<Player> midfielders = createPlayerPositionTable(players.values(), 3, 300);
+//            TableView<Player> defenders = createPlayerPositionTable(players.values(), 2, 300);
+//            TableView<Player> goalkeepers = createPlayerPositionTable(players.values(), 1, 150);
+//
+//            Platform.runLater(() -> {
+//                playersPane.getChildren().add(playerTable);
+//                strikersPaneAll.setContent(strikers);
+//                midfieldersPaneAll.setContent(midfielders);
+//                defendersPaneAll.setContent(defenders);
+//                goalkeepersPaneAll.setContent(goalkeepers);
+//            });
 
-            TableView<Player> playerTable = createPlayerTable(players);
-            TableView<Player> strikers = createPlayerPositionTable(players, 4, 200);
-            TableView<Player> midfielders = createPlayerPositionTable(players, 3, 300);
-            TableView<Player> defenders = createPlayerPositionTable(players, 2, 300);
-            TableView<Player> goalkeepers = createPlayerPositionTable(players, 1, 150);
+            Map<PlayerValue, List<Player>> buys = teamAdviser.findGoodBadBuys();
 
+            List<Player> goodBuys = buys.get(PlayerValue.GOOD);
+            TableView<Player> goodBuysTable = createPlayerTable(goodBuys);
             Platform.runLater(() -> {
-                playersPane.getChildren().add(playerTable);
-                strikersPaneAll.setContent(strikers);
-                midfieldersPaneAll.setContent(midfielders);
-                defendersPaneAll.setContent(defenders);
-                goalkeepersPaneAll.setContent(goalkeepers);
+                preSeasonGoodValue.setContent(goodBuysTable);
             });
+
+
+            List<Player> badBuys = buys.get(PlayerValue.BAD);
+            TableView<Player> badBuysTable = createPlayerTable(badBuys);
+            Platform.runLater(() -> {
+                preSeasonBadValue.getChildren().add(badBuysTable);
+            });
+
+
         }).start();
     }
 
@@ -156,7 +179,7 @@ public class Controller {
 
         teamLabel.setText(team.getName().substring(0, team.getName().length() - 4) + " - " + fixtures);
 
-        List<Player> teamPlayers = players.parallelStream()
+        List<Player> teamPlayers = players.values().parallelStream()
                 .filter(p -> p.getTeam() == team.getId())
                 .collect(Collectors.toList());
 
@@ -174,7 +197,7 @@ public class Controller {
 
     }
 
-    public TableView<Player> createPlayerPositionTable(List<Player> players, int playerType, int prefHeight) {
+    public TableView<Player> createPlayerPositionTable(Collection<Player> players, int playerType, int prefHeight) {
 
         ObservableList<Player> observablePlayers = FXCollections.observableArrayList(players.stream()
                 .filter(p -> p.getPlayerType() == playerType)
@@ -186,7 +209,7 @@ public class Controller {
         return table;
     }
 
-    public TableView<Player> createPlayerTable(List<Player> players) {
+    public TableView<Player> createPlayerTable(Collection<Player> players) {
 
         TableView<Player> table = createGenericPlayerTable(FXCollections.observableArrayList(players));
         table.setPrefSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -629,5 +652,10 @@ public class Controller {
     public String makeDoubleCss(String colour1, String colour2) {
         //return "-fx-background-color: linear-gradient(from 0px 0px to 50px 0px, " + colour1 + " 0%, " + colour1 + " 50%, " + colour2 + " 50%, " + colour2 + " 100%)";
         return "-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, " + colour1 + " 45%, black 50%, " + colour2 + " 55%)";
+    }
+
+    public void createPreSeasonTable(Map<PlayerValue, List<Player>> buys) {
+
+
     }
 }

@@ -1,6 +1,7 @@
 package com.controller;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,11 +16,11 @@ import static com.controller.Controller.BASE_FPL_URL;
 
 public class FPLUtil {
 
-    public static JSONArray makeFPLRequest(String parameter) {
-        return DUMMY ? readLocal(parameter) : makeHttpRequest(parameter);
+    public static Object makeFPLRequest(String parameter, boolean isArray) {
+        return DUMMY ? readLocal(parameter, isArray) : makeHttpRequest(parameter, isArray);
     }
 
-    private static JSONArray makeHttpRequest(String parameter) {
+    private static Object makeHttpRequest(String parameter, boolean isArray) {
         try {
             URL url = new URL(BASE_FPL_URL + parameter);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -35,7 +36,8 @@ public class FPLUtil {
             in.close();
 
             con.disconnect();
-            return new JSONArray(content.toString());
+
+            return isArray ? new JSONArray(content.toString()) : new JSONObject(content.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -44,7 +46,9 @@ public class FPLUtil {
         return null;
     }
 
-    private static JSONArray readLocal(String parameter) {
+    private static JSONArray readLocal(String parameter, boolean isArray) {
+
+        //TODO implement
 
         File file = new File(FPLUtil.class.getClassLoader().getResource("historical/" + parameter + ".json").getFile());
 

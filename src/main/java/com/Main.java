@@ -20,11 +20,11 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("PremierChecker.fxml"));
-        primaryStage.setTitle("Premier Checker");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         SCREEN_WIDTH = screenSize.getWidth() - 50;
-        SCREEN_HEIGHT = screenSize.getHeight() - 100;
+        SCREEN_HEIGHT = screenSize.getHeight() - 150;
+        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("PremierChecker.fxml"));
+        primaryStage.setTitle("Premier Checker");
         primaryStage.setScene(new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT));
         primaryStage.show();
     }

@@ -24,7 +24,6 @@ import static com.controller.FPLUtil.makeFPLRequest;
 public class TeamChecker {
 
     private Map<Integer, Team> teams = new HashMap<>();
-    Map<LocalDateTime, List<Fixture>> gameweeks = new TreeMap<>();
 
     public TeamChecker() {
         processTeams();
@@ -97,7 +96,7 @@ public class TeamChecker {
     }
 
     private void processTeams() {
-        JSONArray ja = makeFPLRequest("teams");
+        JSONArray ja = FPL_DATA.getJSONArray("teams");
 
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
@@ -122,7 +121,7 @@ public class TeamChecker {
     }
 
     private void extractFixtures() {
-        JSONArray ja = makeFPLRequest("fixtures");
+        JSONArray ja = (JSONArray) makeFPLRequest("fixtures", true);
         List<Fixture> fixtures = new ArrayList<>();
 
         TimeZone timeZone = Calendar.getInstance().getTimeZone();
@@ -132,7 +131,8 @@ public class TeamChecker {
 
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
-            LocalDateTime deadline = LocalDateTime.parse(jo.optString("deadline_time", "2100-01-01T12:00:00Z"), formatter);
+            //TODO change back to deadline_time?
+            LocalDateTime deadline = LocalDateTime.parse(matchDeadlineTime(jo.getInt("event")), formatter);
             if (timeZone.getDisplayName().equals("Greenwich Mean Time")) {
                 deadline = deadline.plusHours(1);
             }
@@ -170,6 +170,17 @@ public class TeamChecker {
             GAMEDAYS = (38 - CURRENT_GAMEWEEK) + 1;
         }
 
+    }
+
+    private String matchDeadlineTime(int eventNumber) {
+        JSONArray ja = FPL_DATA.getJSONArray("events");
+        for (Object obj : ja) {
+            JSONObject jo = (JSONObject)obj;
+            if (jo.getInt("id") == eventNumber) {
+                return jo.getString("deadline_time");
+            }
+        }
+        return "2100-01-01T12:00:00Z";
     }
 
     public void getLeaguePlaces() {
