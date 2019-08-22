@@ -186,17 +186,17 @@ public class TeamChecker {
     public void getLeaguePlaces() {
 
         try {
-            Document doc = DUMMY ? Jsoup.parse(new File(this.getClass().getClassLoader().getResource("historical/table.html").getFile()), "UTF-8", "http://example.com/") : Jsoup.connect("https://www.premierleague.com/tables").get();
+            Document doc = DUMMY ? Jsoup.parse(new File(this.getClass().getClassLoader().getResource("historical/end19/table.html").getFile()), "UTF-8", "http://example.com/") : Jsoup.connect("https://www.premierleague.com/tables").get();
             Elements tableRows = doc.getElementsByTag("tbody").get(0).children();
 
             for (int i = 0; i < tableRows.size(); i += 2) {
                 Element htmlTeam = tableRows.get(i);
 
                 Image image;
-                String positionChangeString = htmlTeam.child(1).child(1).className();
-                if (positionChangeString.equals("movement up")) {
+                String positionChangeString = htmlTeam.child(1).child(0).className();
+                if (positionChangeString.contains("up")) {
                     image = new Image(getClass().getResource("/UpArrow.png").toURI().toString());
-                } else if (positionChangeString.equals("movement down")) {
+                } else if (positionChangeString.contains("down")) {
                     image = new Image(getClass().getResource("/DownArrow.png").toURI().toString());
                 } else {
                     image = new Image(getClass().getResource("/NoChange.png").toURI().toString());

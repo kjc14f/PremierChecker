@@ -18,7 +18,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -28,7 +27,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.Main.*;
+import static com.Main.SCREEN_HEIGHT;
+import static com.Main.SCREEN_WIDTH;
 import static com.controller.FPLUtil.makeFPLRequest;
 
 public class Controller {
@@ -37,8 +37,8 @@ public class Controller {
     public static int WEEK_OFFSET = 0;
     public static int CURRENT_GAMEWEEK = 0;
     public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/api/";
-    public static final JSONObject FPL_DATA = (JSONObject) makeFPLRequest("bootstrap-static", false);
-    private final int OPTIMAL_WEEKS = 5;
+    public static final JSONObject FPL_DATA = (JSONObject) makeFPLRequest("bootstrap-static/", false);
+    private int OPTIMAL_WEEKS = 5;
 
     private Map<Integer, Player> players;
 
@@ -53,7 +53,7 @@ public class Controller {
     @FXML
     private TitledPane strikersPaneAll, midfieldersPaneAll, defendersPaneAll, goalkeepersPaneAll;
     @FXML
-    private TextField gameweeksBox, startingFromBox;
+    private TextField gameweeksBox, startingFromBox, matrixStarting, matrixOptimal;
     @FXML
     private AnchorPane leagueTablePane, difficultyPane, playersPane;
 
@@ -119,21 +119,21 @@ public class Controller {
     public void setupPlayers() {
         new Thread(() -> {
             TeamAdviser teamAdviser = new TeamAdviser();
-//            players = teamAdviser.getPlayers();
-//
-//            TableView<Player> playerTable = createPlayerTable(players.values());
-//            TableView<Player> strikers = createPlayerPositionTable(players.values(), 4, 200);
-//            TableView<Player> midfielders = createPlayerPositionTable(players.values(), 3, 300);
-//            TableView<Player> defenders = createPlayerPositionTable(players.values(), 2, 300);
-//            TableView<Player> goalkeepers = createPlayerPositionTable(players.values(), 1, 150);
-//
-//            Platform.runLater(() -> {
-//                playersPane.getChildren().add(playerTable);
-//                strikersPaneAll.setContent(strikers);
-//                midfieldersPaneAll.setContent(midfielders);
-//                defendersPaneAll.setContent(defenders);
-//                goalkeepersPaneAll.setContent(goalkeepers);
-//            });
+            players = teamAdviser.getPlayers();
+
+            TableView<Player> playerTable = createPlayerTable(players.values());
+            TableView<Player> strikers = createPlayerPositionTable(players.values(), 4, 200);
+            TableView<Player> midfielders = createPlayerPositionTable(players.values(), 3, 300);
+            TableView<Player> defenders = createPlayerPositionTable(players.values(), 2, 300);
+            TableView<Player> goalkeepers = createPlayerPositionTable(players.values(), 1, 150);
+
+            Platform.runLater(() -> {
+                playersPane.getChildren().add(playerTable);
+                strikersPaneAll.setContent(strikers);
+                midfieldersPaneAll.setContent(midfielders);
+                defendersPaneAll.setContent(defenders);
+                goalkeepersPaneAll.setContent(goalkeepers);
+            });
 
             Map<PlayerValue, List<Player>> buys = teamAdviser.findGoodBadBuys();
 
@@ -271,6 +271,33 @@ public class Controller {
         TableColumn team = new TableColumn("Team ID");
         team.setCellValueFactory(new PropertyValueFactory<Player, String>("team"));
 
+        TableColumn cleanSheets = new TableColumn("Clean Sheets");
+        cleanSheets.setCellValueFactory(new PropertyValueFactory<Player, String>("cleanSheets"));
+
+        TableColumn goalsConceded = new TableColumn("Conceded");
+        goalsConceded.setCellValueFactory(new PropertyValueFactory<Player, String>("goalsConceded"));
+
+        TableColumn ownGoals = new TableColumn("Own Goals");
+        ownGoals.setCellValueFactory(new PropertyValueFactory<Player, String>("ownGoals"));
+
+        TableColumn penaltiesSaved = new TableColumn("Pens saved");
+        penaltiesSaved.setCellValueFactory(new PropertyValueFactory<Player, String>("penaltiesSaved"));
+
+        TableColumn penaltiesScored = new TableColumn("Pens scored");
+        penaltiesScored.setCellValueFactory(new PropertyValueFactory<Player, String>("penaltiesScored"));
+
+        TableColumn yellowCards = new TableColumn("Yellows");
+        yellowCards.setCellValueFactory(new PropertyValueFactory<Player, String>("yellowCards"));
+
+        TableColumn redCards = new TableColumn("Reds");
+        redCards.setCellValueFactory(new PropertyValueFactory<Player, String>("redCards"));
+
+        TableColumn saves = new TableColumn("Saves");
+        saves.setCellValueFactory(new PropertyValueFactory<Player, String>("saves"));
+
+        TableColumn bonus = new TableColumn("Bonus");
+        bonus.setCellValueFactory(new PropertyValueFactory<Player, String>("bonus"));
+
         table.getColumns().addAll(
                 name,
                 points,
@@ -288,7 +315,16 @@ public class Controller {
                 threat,
                 costChange,
                 news,
-                team
+                team,
+                cleanSheets,
+                goalsConceded,
+                ownGoals,
+                penaltiesSaved,
+                penaltiesScored,
+                yellowCards,
+                redCards,
+                saves,
+                bonus
         );
         table.setRowFactory(tv -> {
             final TableRow<Player> row = new TableRow<Player>() {
@@ -556,7 +592,7 @@ public class Controller {
                                 setTooltip(new Tooltip(tooltipText.equals("") ? "BLANK" : tooltipText));
 
                                 int index = table.getColumns().indexOf(getTableColumn());
-                                if (index > 3 && index < 9) {
+                                if (index > 3 && index < 3 + Integer.parseInt(matrixOptimal.getText())) {
                                     for (Team team : optimalTeams) {
                                         if (team.getId() == id) {
                                             if (getStyle().contains("%")) {
@@ -654,8 +690,8 @@ public class Controller {
         return "-fx-background-color: linear-gradient(from 41% 34% to 50% 50%, reflect, " + colour1 + " 45%, black 50%, " + colour2 + " 55%)";
     }
 
-    public void createPreSeasonTable(Map<PlayerValue, List<Player>> buys) {
-
-
+    public void setMatrixListener() {
+        OPTIMAL_WEEKS = Integer.parseInt(matrixOptimal.getText());
+        setupTeams();
     }
 }

@@ -50,7 +50,7 @@ public class FPLUtil {
 
         //TODO implement
 
-        File file = new File(FPLUtil.class.getClassLoader().getResource("historical/" + parameter + ".json").getFile());
+        File file = new File(FPLUtil.class.getClassLoader().getResource("historical/end19/" + parameter + ".json").getFile());
 
         try {
             String content = new String(Files.readAllBytes(file.toPath()));

@@ -20,10 +20,17 @@ public class Player {
     private double valueToICT;
     private double valueToMinutes;
     private double weightedValue;
+    int cleanSheets;
+    int goalsConceded;
+    int ownGoals;
+    int penaltiesSaved;
+    int penaltiesScored;
+    int yellowCards;
+    int redCards;
+    int saves;
+    int bonus;
 
-    public Player(String name, float cost, float form, int points, int minutes, int playerType, int chancePlayingThis,
-                  int chancePlayingNext, float costChange, String influence, String threat, double ictIndex, int team,
-                  String news, double valueToCost, double valueToICT, double valueToMinutes, double weightedValue) {
+    public Player(String name, float cost, float form, int points, int minutes, int playerType, int chancePlayingThis, int chancePlayingNext, float costChange, String influence, String threat, double ictIndex, int team, String news, double valueToCost, double valueToICT, double valueToMinutes, double weightedValue, int cleanSheets, int goalsConceded, int ownGoals, int penaltiesSaved, int penaltiesScored, int yellowCards, int redCards, int saves, int bonus) {
         this.name = name;
         this.cost = cost;
         this.form = form;
@@ -42,6 +49,15 @@ public class Player {
         this.valueToICT = valueToICT;
         this.valueToMinutes = valueToMinutes;
         this.weightedValue = weightedValue;
+        this.cleanSheets = cleanSheets;
+        this.goalsConceded = goalsConceded;
+        this.ownGoals = ownGoals;
+        this.penaltiesSaved = penaltiesSaved;
+        this.penaltiesScored = penaltiesScored;
+        this.yellowCards = yellowCards;
+        this.redCards = redCards;
+        this.saves = saves;
+        this.bonus = bonus;
     }
 
     public String getName() {
@@ -186,5 +202,77 @@ public class Player {
 
     public void setWeightedValue(double weightedValue) {
         this.weightedValue = weightedValue;
+    }
+
+    public int getCleanSheets() {
+        return cleanSheets;
+    }
+
+    public void setCleanSheets(int cleanSheets) {
+        this.cleanSheets = cleanSheets;
+    }
+
+    public int getGoalsConceded() {
+        return goalsConceded;
+    }
+
+    public void setGoalsConceded(int goalsConceded) {
+        this.goalsConceded = goalsConceded;
+    }
+
+    public int getOwnGoals() {
+        return ownGoals;
+    }
+
+    public void setOwnGoals(int ownGoals) {
+        this.ownGoals = ownGoals;
+    }
+
+    public int getPenaltiesSaved() {
+        return penaltiesSaved;
+    }
+
+    public void setPenaltiesSaved(int penaltiesSaved) {
+        this.penaltiesSaved = penaltiesSaved;
+    }
+
+    public int getPenaltiesScored() {
+        return penaltiesScored;
+    }
+
+    public void setPenaltiesScored(int penaltiesScored) {
+        this.penaltiesScored = penaltiesScored;
+    }
+
+    public int getYellowCards() {
+        return yellowCards;
+    }
+
+    public void setYellowCards(int yellowCards) {
+        this.yellowCards = yellowCards;
+    }
+
+    public int getRedCards() {
+        return redCards;
+    }
+
+    public void setRedCards(int redCards) {
+        this.redCards = redCards;
+    }
+
+    public int getSaves() {
+        return saves;
+    }
+
+    public void setSaves(int saves) {
+        this.saves = saves;
+    }
+
+    public int getBonus() {
+        return bonus;
+    }
+
+    public void setBonus(int bonus) {
+        this.bonus = bonus;
     }
 }
