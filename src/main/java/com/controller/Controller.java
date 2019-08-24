@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 
 import static com.Main.SCREEN_HEIGHT;
 import static com.Main.SCREEN_WIDTH;
-import static com.controller.FPLUtil.makeFPLRequest;
 
 public class Controller {
 
@@ -37,7 +36,8 @@ public class Controller {
     public static int WEEK_OFFSET = 0;
     public static int CURRENT_GAMEWEEK = 0;
     public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/api/";
-    public static final JSONObject FPL_DATA = (JSONObject) makeFPLRequest("bootstrap-static/", false);
+    public static final String LOGIN_FPL_URL = "https://users.premierleague.com/accounts/login/";
+    public static JSONObject FPL_DATA;
     private int OPTIMAL_WEEKS = 5;
 
     private Map<Integer, Player> players;

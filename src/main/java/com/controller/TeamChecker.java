@@ -121,7 +121,7 @@ public class TeamChecker {
     }
 
     private void extractFixtures() {
-        JSONArray ja = (JSONArray) makeFPLRequest("fixtures", true);
+        JSONArray ja = (JSONArray) makeFPLRequest("fixtures", true, false);
         List<Fixture> fixtures = new ArrayList<>();
 
         TimeZone timeZone = Calendar.getInstance().getTimeZone();
