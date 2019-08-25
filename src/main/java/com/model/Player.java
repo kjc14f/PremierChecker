@@ -20,15 +20,15 @@ public class Player {
     private double valueToICT;
     private double valueToMinutes;
     private double weightedValue;
-    int cleanSheets;
-    int goalsConceded;
-    int ownGoals;
-    int penaltiesSaved;
-    int penaltiesScored;
-    int yellowCards;
-    int redCards;
-    int saves;
-    int bonus;
+    private int cleanSheets;
+    private int goalsConceded;
+    private int ownGoals;
+    private int penaltiesSaved;
+    private int penaltiesScored;
+    private int yellowCards;
+    private int redCards;
+    private int saves;
+    private int bonus;
 
     public Player(String name, float cost, float form, int points, int minutes, int playerType, int chancePlayingThis, int chancePlayingNext, float costChange, String influence, String threat, double ictIndex, int team, String news, double valueToCost, double valueToICT, double valueToMinutes, double weightedValue, int cleanSheets, int goalsConceded, int ownGoals, int penaltiesSaved, int penaltiesScored, int yellowCards, int redCards, int saves, int bonus) {
         this.name = name;

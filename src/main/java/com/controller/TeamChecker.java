@@ -101,6 +101,7 @@ public class TeamChecker {
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
             int id = jo.getInt("id");
+            int code = jo.getInt("code");
             String name = jo.getString("name");
             String shortName = jo.getString("short_name");
             int strength = jo.getInt("strength");
@@ -115,7 +116,7 @@ public class TeamChecker {
                 name = "Tottenham";
             }
 
-            teams.put(id, new Team(id, name, shortName, strength, awayStrength, homeStrength, homeAttackStrength, homeDefenseStrength,
+            teams.put(id, new Team(id, code, name, shortName, strength, awayStrength, homeStrength, homeAttackStrength, homeDefenseStrength,
                     awayAttackStrength, awayDefenseStrength));
         }
     }
@@ -205,40 +206,23 @@ public class TeamChecker {
                 position.setPreserveRatio(true);
                 position.setFitHeight(12);
 
-                String name = htmlTeam.child(2).child(0).child(1).text();
-                if (name.equals("Manchester United")) {
-                    name = "Man Utd";
-                } else if (name.equals("Manchester City")) {
-                    name = "Man City";
-                } else if (name.equals("Wolverhampton Wanderers")) {
-                    name = "Wolves";
-                } else if (name.equals("West Ham United")) {
-                    name = "West Ham";
-                } else if (name.equals("Brighton and Hove Albion")) {
-                    name = "Brighton";
-                } else if (name.equals("Newcastle United")) {
-                    name = "Newcastle";
-                } else if (name.equals("Cardiff City")) {
-                    name = "Cardiff";
-                } else if (name.equals("Huddersfield Town")) {
-                    name = "Huddersfield";
-                } else if (name.equals("Tottenham Hotspur")) {
-                    name = "Tottenham";
-                } else if (name.equals("Leicester City")) {
-                    name = "Leicester";
+                String shortName = htmlTeam.child(2).child(0).child(2).text();
+
+                String finalName = shortName;
+                Team team = teams.values().stream().filter(e -> e.getShortName().equals(finalName)).findFirst().orElse(null);
+
+                if (team != null) {
+                    team.setPlayed(Integer.parseInt(htmlTeam.child(3).text()));
+                    team.setWins(Integer.parseInt(htmlTeam.child(4).text()));
+                    team.setDraws(Integer.parseInt(htmlTeam.child(5).text()));
+                    team.setLosses(Integer.parseInt(htmlTeam.child(6).text()));
+                    team.setGoalsScored(Integer.parseInt(htmlTeam.child(7).text()));
+                    team.setGoalsConceded(Integer.parseInt(htmlTeam.child(8).text()));
+                    team.setPoints(Integer.parseInt(htmlTeam.child(10).text()));
+                    team.setPositionChangeImage(position);
+                } else {
+                    System.err.println("Could not match name '" + finalName + "' to league table name");
                 }
-
-                String finalName = name;
-                Team team = teams.values().stream().filter(e -> e.getName().equals(finalName)).findFirst().get();
-
-                team.setPlayed(Integer.parseInt(htmlTeam.child(3).text()));
-                team.setWins(Integer.parseInt(htmlTeam.child(4).text()));
-                team.setDraws(Integer.parseInt(htmlTeam.child(5).text()));
-                team.setLosses(Integer.parseInt(htmlTeam.child(6).text()));
-                team.setGoalsScored(Integer.parseInt(htmlTeam.child(7).text()));
-                team.setGoalsConceded(Integer.parseInt(htmlTeam.child(8).text()));
-                team.setPoints(Integer.parseInt(htmlTeam.child(10).text()));
-                team.setPositionChangeImage(position);
             }
 
         } catch (Exception e) {

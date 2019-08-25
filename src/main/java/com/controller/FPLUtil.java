@@ -29,23 +29,31 @@ import static com.controller.Controller.LOGIN_FPL_URL;
 public class FPLUtil {
 
     private static final String AUTH_COOKIE_NAME = "sessionid";
+    private static final String PROFILE_COOKIE_NAME = "pl_profile";
     public static Cookie AUTH_COOKIE = null;
+    public static Cookie PROFILE_COOKIE = null;
 
     public static Object makeFPLRequest(String parameter, boolean isArray, boolean auth) {
         return DUMMY ? readLocal(parameter, isArray) : makeHttpRequest(parameter, isArray, auth);
     }
 
     private static Object makeHttpRequest(String parameter, boolean isArray, boolean auth) {
-        HttpClient client = HttpClientBuilder.create().build();
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
         HttpGet request = new HttpGet(BASE_FPL_URL + parameter);
 
         if (auth) {
-            if (AUTH_COOKIE.getValue() == null) loginRequest();
-            request.addHeader(AUTH_COOKIE_NAME, AUTH_COOKIE.getValue());
+            if (AUTH_COOKIE == null || AUTH_COOKIE.getValue() == null || PROFILE_COOKIE == null || PROFILE_COOKIE.getValue() == null) loginRequest();
+            CookieStore cookieStore = new BasicCookieStore();
+            cookieStore.addCookie(AUTH_COOKIE);
+            cookieStore.addCookie(PROFILE_COOKIE);
+            builder.setDefaultCookieStore(cookieStore);
         }
 
+        HttpClient client = builder.build();
+
         try {
-            HttpResponse response = client.execute(new HttpGet(BASE_FPL_URL + parameter));
+            HttpResponse response = client.execute(request);
 
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(response.getEntity().getContent()));
@@ -95,6 +103,8 @@ public class FPLUtil {
             List<Cookie> cookies = httpCookieStore.getCookies();
             Optional<Cookie> sessionOptional = cookies.stream().filter(e -> e.getName().equals(AUTH_COOKIE_NAME)).findFirst();
             AUTH_COOKIE = sessionOptional.orElse(null);
+            Optional<Cookie> profileOptional = cookies.stream().filter(e -> e.getName().equals(PROFILE_COOKIE_NAME)).findFirst();
+            PROFILE_COOKIE = profileOptional.orElse(null);
         } catch (IOException e) {
             e.printStackTrace();
         }

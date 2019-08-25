@@ -11,6 +11,7 @@ import java.util.TreeMap;
 public class Team {
 
     private int id;
+    private int code;
     private String name;
     private String shortName;
     private int strength;
@@ -40,8 +41,9 @@ public class Team {
     private ImageView positionChangeImage;
     private int cleanSheets;
 
-    public Team(int id, String name, String shortName, int strength, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength) {
+    public Team(int id, int code, String name, String shortName, int strength, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength) {
         this.id = id;
+        this.code = code;
         this.name = name;
         this.shortName = shortName;
         this.strength = strength;
@@ -53,8 +55,9 @@ public class Team {
         this.awayDefenseStrength = awayDefenseStrength;
     }
 
-    public Team(int id, String name, String shortName, int strength, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength, Map<LocalDateTime, List<Fixture>> groupedFixtures, int strengthTotal, int difficultyTotal, int differenceDifficulty, int place, int outOfPlace) {
+    public Team(int id, int code, String name, String shortName, int strength, int awayStrength, int homeStrength, int homeAttackStrength, int homeDefenseStrength, int awayAttackStrength, int awayDefenseStrength, Map<LocalDateTime, List<Fixture>> groupedFixtures, int strengthTotal, int difficultyTotal, int differenceDifficulty, int place, int outOfPlace) {
         this.id = id;
+        this.code = code;
         this.name = name;
         this.shortName = shortName;
         this.strength = strength;
@@ -74,6 +77,7 @@ public class Team {
 
     public Team(Team team) {
         this(team.getId(),
+                team.getCode(),
                 team.getName(),
                 team.getShortName(),
                 team.getStrength(),
@@ -97,6 +101,14 @@ public class Team {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
     }
 
     public String getName() {

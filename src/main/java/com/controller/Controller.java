@@ -1,9 +1,6 @@
 package com.controller;
 
-import com.model.Fixture;
-import com.model.Player;
-import com.model.PlayerValue;
-import com.model.Team;
+import com.model.*;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -14,21 +11,21 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.Main.SCREEN_HEIGHT;
 import static com.Main.SCREEN_WIDTH;
+import static com.controller.FPLUtil.makeFPLRequest;
 
 public class Controller {
 
@@ -41,6 +38,7 @@ public class Controller {
     private int OPTIMAL_WEEKS = 5;
 
     private Map<Integer, Player> players;
+    private TeamChecker teamChecker;
 
     @FXML
     private ScrollPane preSeasonGoodValue;
@@ -56,8 +54,14 @@ public class Controller {
     private TextField gameweeksBox, startingFromBox, matrixStarting, matrixOptimal;
     @FXML
     private AnchorPane leagueTablePane, difficultyPane, playersPane;
+    @FXML
+    private GridPane myTeamGridPane;
+    @FXML
+    HBox test;
 
     public Controller() {
+        new Thread(() -> FPLUtil.loginRequest()).start();
+        FPL_DATA = (JSONObject) makeFPLRequest("bootstrap-static/", false, false);
         setupTeams();
         setupPlayers();
     }
@@ -66,7 +70,7 @@ public class Controller {
 
         new Thread(() -> {
 
-            TeamChecker teamChecker = new TeamChecker();
+            teamChecker = new TeamChecker();
 
             Thread leagueThread = new Thread(() -> teamChecker.getLeaguePlaces());
             leagueThread.start();
@@ -118,6 +122,11 @@ public class Controller {
 
     public void setupPlayers() {
         new Thread(() -> {
+
+            LeagueAdviser leagueAdviser = new LeagueAdviser();
+            Thread myTeamThread = new Thread(() -> leagueAdviser.getMyTeam());
+            myTeamThread.start();
+
             TeamAdviser teamAdviser = new TeamAdviser();
             players = teamAdviser.getPlayers();
 
@@ -150,8 +159,46 @@ public class Controller {
                 preSeasonBadValue.getChildren().add(badBuysTable);
             });
 
+            try {
+                myTeamThread.join();
+                createMyTeamGrid(leagueAdviser.matchPlayers(players));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
         }).start();
+    }
+
+    public void createMyTeamGrid(List<Pick> picks) {
+        Platform.runLater(() -> {
+            test.getChildren().add(new Label("This is a testtttt"));
+            test.getChildren().add(new Label("This is a testtttt"));
+        });
+
+        int goalkeepers = 0;
+        int defenders = 0;
+        int midfielder = 0;
+        int strikers = 0;
+
+        for (Pick pick : picks) {
+            if (pick.getPlayer().getPlayerType() == 1) { // Goalkeeper
+                int finalGoalkeepers = goalkeepers;
+                Platform.runLater(() -> myTeamGridPane.add(new Label(pick.getPlayer().getName()), finalGoalkeepers, 0));
+                goalkeepers++;
+            } else if (pick.getPlayer().getPlayerType() == 2) { // Defender
+                int finalDefenders = defenders;
+                Platform.runLater(() -> myTeamGridPane.add(new Label(pick.getPlayer().getName()), finalDefenders, 1));
+                defenders++;
+            } else if (pick.getPlayer().getPlayerType() == 3) { // Midfielder
+                int finalMidfielder = midfielder;
+                Platform.runLater(() -> myTeamGridPane.add(new Label(pick.getPlayer().getName()), finalMidfielder, 2));
+                midfielder++;
+            } else { // Striker
+                int finalStrikers = strikers;
+                Platform.runLater(() -> myTeamGridPane.add(new Label(pick.getPlayer().getName()), finalStrikers, 3));
+                strikers++;
+            }
+        }
     }
 
     public void gameWeeksUpdate() {
@@ -692,6 +739,12 @@ public class Controller {
 
     public void setMatrixListener() {
         OPTIMAL_WEEKS = Integer.parseInt(matrixOptimal.getText());
-        setupTeams();
+//        setupTeams();
+        List<Team> teams = teamChecker.calculatePlays(OPTIMAL_WEEKS);
+        teamChecker.calculatePlaces(teams);
+        List<Team> optimalTeams = new ArrayList<>(4);
+        optimalTeams.addAll(teams.subList(16, 20));
+        TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), optimalTeams);
+        Platform.runLater(() -> difficultyPane.getChildren().add(difficultyTable));
     }
 }
