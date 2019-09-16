@@ -18,8 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.Main.DUMMY;
-import static com.controller.Controller.*;
-import static com.controller.FPLUtil.makeFPLRequest;
+import static com.controller.FPLUtil.*;
 
 public class TeamChecker {
 
@@ -122,7 +121,7 @@ public class TeamChecker {
     }
 
     private void extractFixtures() {
-        JSONArray ja = (JSONArray) makeFPLRequest("fixtures", true, false);
+        JSONArray ja = (JSONArray) makeFPLRequest(BASE_FPL_URL + "fixtures", true, false);
         List<Fixture> fixtures = new ArrayList<>();
 
         TimeZone timeZone = Calendar.getInstance().getTimeZone();
@@ -162,7 +161,6 @@ public class TeamChecker {
 
         for (Map.Entry<LocalDateTime, List<Fixture>> gameweek : mixedGameweeks.entrySet()) {
             for (Team team : teams.values()) {
-                team.getGroupedFixtures().put(gameweek.getKey(), new ArrayList<>());
                 team.getGroupedFixtures().put(gameweek.getKey(), gameweek.getValue().stream().filter(e -> e.getAwayTeam() == team.getId() || e.getHomeTeam() == team.getId()).collect(Collectors.toList()));
             }
         }

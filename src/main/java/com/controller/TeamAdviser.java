@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static com.controller.Controller.FPL_DATA;
+import static com.controller.FPLUtil.FPL_DATA;
 
 public class TeamAdviser {
 
@@ -41,7 +41,8 @@ public class TeamAdviser {
             int playerType = jo.getInt("element_type");
             int chancePlayingThis = jo.isNull("chance_of_playing_this_round") ? -1 : jo.getInt("chance_of_playing_this_round");
             int chancePlayingNext = jo.isNull("chance_of_playing_next_round") ? -1 : jo.getInt("chance_of_playing_next_round");
-            float costChange = jo.getFloat("cost_change_start") / 10;
+            float costChangeTotal = jo.getFloat("cost_change_start") / 10;
+            float costChangeWeek = jo.getFloat("cost_change_event") / 10;
             String influence = jo.getString("influence");
             String threat = jo.getString("threat");
             double ictIndex = Double.parseDouble(jo.getString("ict_index"));
@@ -83,7 +84,7 @@ public class TeamAdviser {
             weightedValue /= 100;
 
             players.put(id, new Player(name, cost, form, points, minutes, playerType, chancePlayingThis, chancePlayingNext,
-                    costChange, influence, threat, ictIndex, team, news,
+                    costChangeTotal, costChangeWeek, influence, threat, ictIndex, team, news,
                     valueToCost, valueToICT, valueToMinute, weightedValue,
                     cleanSheets, goalsConceded, ownGoals, penaltiesSaved, penaltiesScored, yellowCards,
                     redCards, saves, bonus));
@@ -145,6 +146,24 @@ public class TeamAdviser {
         }
 
         return null;
+    }
+
+    public Map<PlayerValue, List<Player>> getPlayerPriceChanges() {
+        Map<PlayerValue, List<Player>> priceChanges = new HashMap<>();
+        List<Player> gains = new ArrayList<>();
+        List<Player> losses = new ArrayList<>();
+        players.values().stream().forEach(e -> {
+            if (e.getCostChangeTotal() != 0) {
+                if (e.getCostChangeTotal() > 0) {
+                    gains.add(e);
+                } else {
+                    losses.add(e);
+                }
+            }
+        });
+        priceChanges.put(PlayerValue.GOOD, gains);
+        priceChanges.put(PlayerValue.BAD, losses);
+        return priceChanges;
     }
 
     public Map<Integer, Player> getPlayers() {

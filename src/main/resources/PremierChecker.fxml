@@ -20,8 +20,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.web.WebView?>
 
-<TabPane tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.controller.Controller">
+<TabPane tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.controller.FxController">
    <tabs>
       <Tab text="Premier Checker">
          <content>
@@ -241,24 +242,27 @@
          <content>
             <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0">
                <items>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="598.0" prefWidth="445.0">
-                     <children>
-                        <VBox>
+                  <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                     <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="598.0" prefWidth="445.0">
                            <children>
-                              <ToolBar prefHeight="30.0" prefWidth="10000.0">
-                                 <items>
-                                    <Label text="Potentially Good Value" textFill="#17d242">
-                                       <font>
-                                          <Font name="System Bold" size="12.0" />
-                                       </font>
-                                    </Label>
-                                 </items>
-                              </ToolBar>
-                              <ScrollPane fx:id="preSeasonGoodValue" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="900.0" prefWidth="900.0" />
+                              <VBox fx:id="preSeasonGoodValue">
+                                 <children>
+                                    <ToolBar prefHeight="30.0" prefWidth="900.0">
+                                       <items>
+                                          <Label text="Potentially Good Value" textFill="#1cae2b">
+                                             <font>
+                                                <Font name="System Bold" size="12.0" />
+                                             </font>
+                                          </Label>
+                                       </items>
+                                    </ToolBar>
+                                 </children>
+                              </VBox>
                            </children>
-                        </VBox>
-                     </children>
-                  </AnchorPane>
+                        </AnchorPane>
+                     </content>
+                  </ScrollPane>
                   <ScrollPane prefHeight="200.0" prefWidth="200.0">
                      <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="598.0" prefWidth="445.0">
@@ -314,20 +318,64 @@
             </BorderPane>
          </content>
       </Tab>
-      <Tab text="Untitled Tab">
+      <Tab text="Price Tracker">
          <content>
-            <VBox prefHeight="200.0" prefWidth="100.0">
-               <children>
-                  <VBox prefHeight="1098.0" prefWidth="1920.0">
-                     <children>
-                        <HBox fx:id="test" alignment="CENTER" prefHeight="100.0" prefWidth="1920.0" VBox.vgrow="ALWAYS" />
-                        <HBox prefHeight="100.0" prefWidth="200.0" />
-                        <HBox prefHeight="100.0" prefWidth="200.0" />
-                        <HBox prefHeight="100.0" prefWidth="200.0" />
-                     </children>
-                  </VBox>
-               </children>
-            </VBox>
+            <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0">
+               <items>
+                  <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                     <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="598.0" prefWidth="445.0">
+                           <children>
+                              <VBox fx:id="priceTrackerDecrease">
+                                 <children>
+                                    <ToolBar prefHeight="30.0" prefWidth="900.0">
+                                       <items>
+                                          <Label text="Price Decrease" textFill="#df1717">
+                                             <font>
+                                                <Font name="System Bold" size="12.0" />
+                                             </font>
+                                          </Label>
+                                       </items>
+                                    </ToolBar>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </AnchorPane>
+                     </content>
+                  </ScrollPane>
+                  <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                     <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="598.0" prefWidth="445.0">
+                           <children>
+                              <VBox fx:id="priceTrackerIncrease">
+                                 <children>
+                                    <ToolBar prefHeight="30.0" prefWidth="900.0">
+                                       <items>
+                                          <Label text="Price Increase" textFill="#1cae2b">
+                                             <font>
+                                                <Font name="System Bold" size="12.0" />
+                                             </font>
+                                          </Label>
+                                       </items>
+                                    </ToolBar>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </AnchorPane>
+                     </content>
+                  </ScrollPane>
+               </items>
+            </SplitPane>
+         </content>
+      </Tab>
+      <Tab text="Injuries">
+         <content>
+            <WebView fx:id="injuriesWebView" prefHeight="200.0" prefWidth="200.0" />
+         </content>
+      </Tab>
+      <Tab text="Bonus Points">
+         <content>
+            <WebView fx:id="bonusPointsWebView" prefHeight="200.0" prefWidth="200.0" />
          </content>
       </Tab>
    </tabs>

@@ -26,6 +26,7 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("PremierChecker.fxml"));
         primaryStage.setTitle("Premier Checker");
         primaryStage.setScene(new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT));
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 

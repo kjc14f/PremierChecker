@@ -10,7 +10,8 @@ public class Player {
     private int playerType;
     private int chancePlayingThis;
     private int chancePlayingNext;
-    private float costChange;
+    private float costChangeTotal;
+    private float costChangeWeek;
     private String influence;
     private String threat;
     private double ictIndex;
@@ -30,7 +31,7 @@ public class Player {
     private int saves;
     private int bonus;
 
-    public Player(String name, float cost, float form, int points, int minutes, int playerType, int chancePlayingThis, int chancePlayingNext, float costChange, String influence, String threat, double ictIndex, int team, String news, double valueToCost, double valueToICT, double valueToMinutes, double weightedValue, int cleanSheets, int goalsConceded, int ownGoals, int penaltiesSaved, int penaltiesScored, int yellowCards, int redCards, int saves, int bonus) {
+    public Player(String name, float cost, float form, int points, int minutes, int playerType, int chancePlayingThis, int chancePlayingNext, float costChangeTotal, float costChangeWeek, String influence, String threat, double ictIndex, int team, String news, double valueToCost, double valueToICT, double valueToMinutes, double weightedValue, int cleanSheets, int goalsConceded, int ownGoals, int penaltiesSaved, int penaltiesScored, int yellowCards, int redCards, int saves, int bonus) {
         this.name = name;
         this.cost = cost;
         this.form = form;
@@ -39,7 +40,8 @@ public class Player {
         this.playerType = playerType;
         this.chancePlayingThis = chancePlayingThis;
         this.chancePlayingNext = chancePlayingNext;
-        this.costChange = costChange;
+        this.costChangeTotal = costChangeTotal;
+        this.costChangeWeek = costChangeWeek;
         this.influence = influence;
         this.threat = threat;
         this.ictIndex = ictIndex;
@@ -124,12 +126,20 @@ public class Player {
         this.chancePlayingNext = chancePlayingNext;
     }
 
-    public float getCostChange() {
-        return costChange;
+    public float getCostChangeTotal() {
+        return costChangeTotal;
     }
 
-    public void setCostChange(float costChange) {
-        this.costChange = costChange;
+    public void setCostChangeTotal(float costChangeTotal) {
+        this.costChangeTotal = costChangeTotal;
+    }
+
+    public float getCostChangeWeek() {
+        return costChangeWeek;
+    }
+
+    public void setCostChangeWeek(float costChangeWeek) {
+        this.costChangeWeek = costChangeWeek;
     }
 
     public String getInfluence() {

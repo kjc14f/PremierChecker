@@ -2,48 +2,51 @@ package com.controller;
 
 import com.model.*;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.web.WebView;
 import javafx.util.Callback;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
-import java.util.*;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.net.URL;
+import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.Main.SCREEN_HEIGHT;
 import static com.Main.SCREEN_WIDTH;
-import static com.controller.FPLUtil.makeFPLRequest;
+import static com.controller.FPLUtil.*;
 
-public class Controller {
+public class FxController {
 
-    public static int GAMEDAYS = 8;
-    public static int WEEK_OFFSET = 0;
-    public static int CURRENT_GAMEWEEK = 0;
-    public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/api/";
-    public static final String LOGIN_FPL_URL = "https://users.premierleague.com/accounts/login/";
-    public static JSONObject FPL_DATA;
     private int OPTIMAL_WEEKS = 5;
 
     private Map<Integer, Player> players;
     private TeamChecker teamChecker;
 
     @FXML
-    private ScrollPane preSeasonGoodValue;
-    @FXML
-    private VBox teamsVBox, preSeasonBadValue;
+    private VBox teamsVBox, preSeasonGoodValue, preSeasonBadValue, priceTrackerDecrease, priceTrackerIncrease;
     @FXML
     private Label teamLabel, teamRatingsLabel, selectedPlayers, totalValue, totalPoints, averagePoints, averageCost;
     @FXML
@@ -57,11 +60,12 @@ public class Controller {
     @FXML
     private GridPane myTeamGridPane;
     @FXML
-    HBox test;
+    private WebView injuriesWebView, bonusPointsWebView;
 
-    public Controller() {
+    public FxController() {
         new Thread(() -> FPLUtil.loginRequest()).start();
-        FPL_DATA = (JSONObject) makeFPLRequest("bootstrap-static/", false, false);
+        new Thread(() -> createWebViews()).start();
+        FPL_DATA = (JSONObject) makeFPLRequest(BASE_FPL_URL + "bootstrap-static/", false, false);
         setupTeams();
         setupPlayers();
     }
@@ -146,17 +150,29 @@ public class Controller {
 
             Map<PlayerValue, List<Player>> buys = teamAdviser.findGoodBadBuys();
 
-            List<Player> goodBuys = buys.get(PlayerValue.GOOD);
-            TableView<Player> goodBuysTable = createPlayerTable(goodBuys);
-            Platform.runLater(() -> {
-                preSeasonGoodValue.setContent(goodBuysTable);
-            });
+            if (buys != null ) {
+                List<Player> goodBuys = buys.get(PlayerValue.GOOD);
+                TableView<Player> goodBuysTable = createPlayerTable(goodBuys);
+                Platform.runLater(() -> {
+                    preSeasonGoodValue.getChildren().add(goodBuysTable);
+                });
 
 
-            List<Player> badBuys = buys.get(PlayerValue.BAD);
-            TableView<Player> badBuysTable = createPlayerTable(badBuys);
+                List<Player> badBuys = buys.get(PlayerValue.BAD);
+                TableView<Player> badBuysTable = createPlayerTable(badBuys);
+//                badBuysTable.getColumns().getColumns().get(2).
+                Platform.runLater(() -> {
+                    preSeasonBadValue.getChildren().add(badBuysTable);
+                });
+            }
+
+            // TODO complete
+            Map<PlayerValue, List<Player>> priceChanges = teamAdviser.getPlayerPriceChanges();
+            TableView<Player> priceIncreases = createPlayerTable(priceChanges.get(PlayerValue.GOOD));
+            TableView<Player> priceDecreases = createPlayerTable(priceChanges.get(PlayerValue.BAD));
             Platform.runLater(() -> {
-                preSeasonBadValue.getChildren().add(badBuysTable);
+                priceTrackerIncrease.getChildren().add(priceIncreases);
+                priceTrackerDecrease.getChildren().add(priceDecreases);
             });
 
             try {
@@ -169,33 +185,85 @@ public class Controller {
         }).start();
     }
 
-    public void createMyTeamGrid(List<Pick> picks) {
-        Platform.runLater(() -> {
-            test.getChildren().add(new Label("This is a testtttt"));
-            test.getChildren().add(new Label("This is a testtttt"));
-        });
+    public void createWebViews() {
+        try {
 
-        int goalkeepers = 0;
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+            ks.load(this.getClass().getResourceAsStream("/TrustStore.jks"), null);
+            tmf.init(ks);
+
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, tmf.getTrustManagers(), new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            final Document doc = Jsoup.parse(new URL(INJURIES_URL), 5000);
+            Platform.runLater(() -> {
+
+                injuriesWebView.getEngine().setJavaScriptEnabled(true);
+                injuriesWebView.getEngine().loadContent(doc.outerHtml());
+                //TODO CSS problems
+                bonusPointsWebView.getEngine().load(BONUS_POINTS_URL);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void createPriceChangeTable(Map<PlayerValue, List<Player>> priceChanges) {
+
+    }
+
+    public void createMyTeamGrid(List<Pick> picks) {
+
+        int goalkeepers = 1;
         int defenders = 0;
         int midfielder = 0;
-        int strikers = 0;
+        int strikers = 1;
+
+        int future = 3;
+        List<Team> teams = teamChecker.calculatePlays(future);
+        teamChecker.calculatePlaces(teams);
+
 
         for (Pick pick : picks) {
+            Team team = teams.stream().filter(e -> e.getId() == pick.getPlayer().getTeam()).findFirst().orElse(null);
+            Label label = new Label(pick.getPlayer().getName() + " (" + team.getShortName() + ")");
+            GridPane.setHalignment(label, HPos.CENTER);
+
+            if (team.getDifficultyTotal() < (future * 2) + 1) {
+                label.setBackground(new Background(new BackgroundFill(Color.web("#00c9e8"), CornerRadii.EMPTY, Insets.EMPTY)));
+            } else if (team.getDifficultyTotal() < (future * 2) + 2) {
+                label.setBackground(new Background(new BackgroundFill(Color.web("#22ff00"), CornerRadii.EMPTY, Insets.EMPTY)));
+            } else if (team.getDifficultyTotal() < (future * 2) + 3) {
+                label.setBackground(new Background(new BackgroundFill(Color.web("#b2e802"), CornerRadii.EMPTY, Insets.EMPTY)));
+            } else if (team.getDifficultyTotal() < (future * 2) + 4) {
+                label.setBackground(new Background(new BackgroundFill(Color.web("#e8e800"), CornerRadii.EMPTY, Insets.EMPTY)));
+            } else if (team.getDifficultyTotal() < (future * 2) + 5) {
+                label.setBackground(new Background(new BackgroundFill(Color.web("#e8b200"), CornerRadii.EMPTY, Insets.EMPTY)));
+            } else if (team.getDifficultyTotal() < (future * 2) + 6) {
+                label.setBackground(new Background(new BackgroundFill(Color.web("#e87902"), CornerRadii.EMPTY, Insets.EMPTY)));
+            } else if (team.getDifficultyTotal() < (future * 2) + 7) {
+                label.setBackground(new Background(new BackgroundFill(Color.web("#e83f00"), CornerRadii.EMPTY, Insets.EMPTY)));
+            } else {
+                label.setBackground(new Background(new BackgroundFill(Color.web("#e80000"), CornerRadii.EMPTY, Insets.EMPTY)));
+            }
+
             if (pick.getPlayer().getPlayerType() == 1) { // Goalkeeper
                 int finalGoalkeepers = goalkeepers;
-                Platform.runLater(() -> myTeamGridPane.add(new Label(pick.getPlayer().getName()), finalGoalkeepers, 0));
-                goalkeepers++;
+                Platform.runLater(() -> myTeamGridPane.add(label, finalGoalkeepers, 0));
+                goalkeepers += 2;
             } else if (pick.getPlayer().getPlayerType() == 2) { // Defender
                 int finalDefenders = defenders;
-                Platform.runLater(() -> myTeamGridPane.add(new Label(pick.getPlayer().getName()), finalDefenders, 1));
+                Platform.runLater(() -> myTeamGridPane.add(label, finalDefenders, 1));
                 defenders++;
             } else if (pick.getPlayer().getPlayerType() == 3) { // Midfielder
                 int finalMidfielder = midfielder;
-                Platform.runLater(() -> myTeamGridPane.add(new Label(pick.getPlayer().getName()), finalMidfielder, 2));
+                Platform.runLater(() -> myTeamGridPane.add(label, finalMidfielder, 2));
                 midfielder++;
             } else { // Striker
                 int finalStrikers = strikers;
-                Platform.runLater(() -> myTeamGridPane.add(new Label(pick.getPlayer().getName()), finalStrikers, 3));
+                Platform.runLater(() -> myTeamGridPane.add(label, finalStrikers, 3));
                 strikers++;
             }
         }
@@ -276,6 +344,9 @@ public class Controller {
         TableColumn cost = new TableColumn("Cost");
         cost.setCellValueFactory(new PropertyValueFactory<Player, String>("cost"));
 
+        TableColumn costChangeTotal = new TableColumn("Cost Change");
+        costChangeTotal.setCellValueFactory(new PropertyValueFactory<Player, String>("costChangeTotal"));
+
         TableColumn ictIndex = new TableColumn("ICT");
         ictIndex.setCellValueFactory(new PropertyValueFactory<Player, String>("ictIndex"));
 
@@ -308,9 +379,6 @@ public class Controller {
 
         TableColumn threat = new TableColumn("Threat");
         threat.setCellValueFactory(new PropertyValueFactory<Player, String>("threat"));
-
-        TableColumn costChange = new TableColumn("Cost Change");
-        costChange.setCellValueFactory(new PropertyValueFactory<Player, String>("costChange"));
 
         TableColumn news = new TableColumn("News");
         news.setCellValueFactory(new PropertyValueFactory<Player, String>("news"));
@@ -349,6 +417,7 @@ public class Controller {
                 name,
                 points,
                 cost,
+                costChangeTotal,
                 ictIndex,
                 minutes,
                 valueToCost,
@@ -360,7 +429,6 @@ public class Controller {
                 form,
                 influence,
                 threat,
-                costChange,
                 news,
                 team,
                 cleanSheets,
@@ -596,8 +664,8 @@ public class Controller {
         name.setCellValueFactory(data -> data.getValue().get(1));
         table.getColumns().add(name);
 
-        TableColumn<List<StringProperty>, String> points = new TableColumn("Points");
-        points.setCellValueFactory(data -> data.getValue().get(2));
+        TableColumn<List<StringProperty>, Integer> points = new TableColumn("Points");
+        points.setCellValueFactory(data -> new SimpleIntegerProperty(Integer.parseInt(data.getValue().get(2).getValue())).asObject());
         table.getColumns().add(points);
 
         TableColumn<List<StringProperty>, String> difficulty = new TableColumn("Difficulty");
@@ -639,7 +707,7 @@ public class Controller {
                                 setTooltip(new Tooltip(tooltipText.equals("") ? "BLANK" : tooltipText));
 
                                 int index = table.getColumns().indexOf(getTableColumn());
-                                if (index > 3 && index < 3 + Integer.parseInt(matrixOptimal.getText())) {
+                                if (index > 3 && index <= 3 + Integer.parseInt(matrixOptimal.getText())) {
                                     for (Team team : optimalTeams) {
                                         if (team.getId() == id) {
                                             if (getStyle().contains("%")) {
@@ -739,7 +807,6 @@ public class Controller {
 
     public void setMatrixListener() {
         OPTIMAL_WEEKS = Integer.parseInt(matrixOptimal.getText());
-//        setupTeams();
         List<Team> teams = teamChecker.calculatePlays(OPTIMAL_WEEKS);
         teamChecker.calculatePlaces(teams);
         List<Team> optimalTeams = new ArrayList<>(4);

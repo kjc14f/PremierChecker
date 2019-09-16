@@ -16,17 +16,27 @@ import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
 import static com.Main.DUMMY;
-import static com.controller.Controller.BASE_FPL_URL;
-import static com.controller.Controller.LOGIN_FPL_URL;
 
 public class FPLUtil {
+
+    public static int GAMEDAYS = 8;
+    public static int WEEK_OFFSET = 0;
+    public static int CURRENT_GAMEWEEK = 0;
+    public static final String BASE_FPL_URL = "https://fantasy.premierleague.com/api/";
+    public static final String LOGIN_FPL_URL = "https://users.premierleague.com/accounts/login/";
+    public static JSONObject FPL_DATA;
+    public static final String INJURIES_URL = "https://www.premierinjuries.com/injury-table.php";
+    public static final String BONUS_POINTS_URL = "https://www.anewpla.net/fpl/live/";
 
     private static final String AUTH_COOKIE_NAME = "sessionid";
     private static final String PROFILE_COOKIE_NAME = "pl_profile";
@@ -39,8 +49,11 @@ public class FPLUtil {
 
     private static Object makeHttpRequest(String parameter, boolean isArray, boolean auth) {
 
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        HttpGet request = new HttpGet(BASE_FPL_URL + parameter);
+        HttpClientBuilder builder = HttpClientBuilder
+                .create()
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setCookieSpec(CookieSpecs.STANDARD).build());
+        HttpGet request = new HttpGet(parameter);
 
         if (auth) {
             if (AUTH_COOKIE == null || AUTH_COOKIE.getValue() == null || PROFILE_COOKIE == null || PROFILE_COOKIE.getValue() == null) loginRequest();

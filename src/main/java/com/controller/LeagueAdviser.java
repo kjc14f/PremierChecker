@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.controller.FPLUtil.BASE_FPL_URL;
 import static com.controller.FPLUtil.makeFPLRequest;
 
 public class LeagueAdviser {
@@ -17,7 +18,7 @@ public class LeagueAdviser {
     private List<Pick> picks;
 
     public List<Pick> getMyTeam() {
-        JSONObject teamData = (JSONObject) makeFPLRequest("my-team/" + MY_TEAM_ID, false, true);
+        JSONObject teamData = (JSONObject) makeFPLRequest(BASE_FPL_URL + "my-team/" + MY_TEAM_ID, false, true);
         JSONArray pickArray = teamData.getJSONArray("picks");
         List<Pick> picks = new ArrayList<>();
         for (int i = 0; i < pickArray.length(); i++) {
