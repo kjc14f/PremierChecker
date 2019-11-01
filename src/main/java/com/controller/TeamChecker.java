@@ -132,7 +132,7 @@ public class TeamChecker {
         for (Object obj : ja) {
             JSONObject jo = (JSONObject) obj;
             //TODO change back to deadline_time?
-            LocalDateTime deadline = LocalDateTime.parse(matchDeadlineTime(jo.getInt("event")), formatter);
+            LocalDateTime deadline = LocalDateTime.parse(matchDeadlineTime(jo.isNull("event") ? -1 : jo.getInt("event")), formatter);
             if (timeZone.getDisplayName().equals("Greenwich Mean Time")) {
                 deadline = deadline.plusHours(1);
             }
