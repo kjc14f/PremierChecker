@@ -37,6 +37,7 @@ public class FPLUtil {
     public static JSONObject FPL_DATA;
     public static final String INJURIES_URL = "https://www.premierinjuries.com/injury-table.php";
     public static final String BONUS_POINTS_URL = "https://www.anewpla.net/fpl/live/";
+    public static final String PRICE_TRACKER_URL = "http://www.fplstatistics.co.uk/";
 
     private static final String AUTH_COOKIE_NAME = "sessionid";
     private static final String PROFILE_COOKIE_NAME = "pl_profile";

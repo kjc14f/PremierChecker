@@ -60,7 +60,7 @@ public class FxController {
     @FXML
     private GridPane myTeamGridPane;
     @FXML
-    private WebView injuriesWebView, bonusPointsWebView;
+    private WebView injuriesWebView, bonusPointsWebView, priceTrackerWebView;
 
     public FxController() {
         new Thread(() -> FPLUtil.loginRequest()).start();
@@ -204,6 +204,7 @@ public class FxController {
                 injuriesWebView.getEngine().loadContent(doc.outerHtml());
                 //TODO CSS problems
                 bonusPointsWebView.getEngine().load(BONUS_POINTS_URL);
+                priceTrackerWebView.getEngine().load(PRICE_TRACKER_URL);
             });
         } catch (Exception e) {
             e.printStackTrace();
