@@ -60,7 +60,7 @@ public class FxController {
     @FXML
     private GridPane myTeamGridPane;
     @FXML
-    private WebView injuriesWebView, bonusPointsWebView;
+    private WebView injuriesWebView, bonusPointsWebView, priceTrackerWebView;
     @FXML
     private Spinner<Integer> myTeamFutureWeeks, myTeamStartingWeek;
 
@@ -208,6 +208,7 @@ public class FxController {
                 injuriesWebView.getEngine().loadContent(doc.outerHtml());
                 //TODO CSS problems
                 bonusPointsWebView.getEngine().load(BONUS_POINTS_URL);
+                priceTrackerWebView.getEngine().load(PRICE_TRACKER_URL);
             });
         } catch (Exception e) {
             e.printStackTrace();
@@ -821,9 +822,5 @@ public class FxController {
         optimalTeams.addAll(teams.subList(16, 20));
         TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), optimalTeams);
         Platform.runLater(() -> difficultyPane.getChildren().add(difficultyTable));
-    }
-
-    public void setMyTeamListener() {
-        System.out.println("TEST");
     }
 }
