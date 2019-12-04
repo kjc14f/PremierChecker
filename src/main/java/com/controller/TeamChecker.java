@@ -46,7 +46,7 @@ public class TeamChecker {
         }
     }
 
-    public List<Team> calculatePlays(int future) {
+    public List<Team> calculatePlays(int future, int starting) {
 
         List<Team> tempTeamList = new ArrayList<>();
 
@@ -55,7 +55,7 @@ public class TeamChecker {
             int strengthTotal = 0;
             int difficultyTotal = 0;
             int differenceDifficulty = 0;
-            for (int i = 0; i < future; i++) {
+            for (int i = starting; i < future; i++) {
                 List<Fixture> fix = (List<Fixture>) team.getGroupedFixtures().values().toArray()[i];
                 if (fix.isEmpty()) {
                     strengthTotal += 1000;

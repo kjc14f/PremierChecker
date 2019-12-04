@@ -61,6 +61,8 @@ public class FxController {
     private GridPane myTeamGridPane;
     @FXML
     private WebView injuriesWebView, bonusPointsWebView;
+    @FXML
+    private Spinner<Integer> myTeamFutureWeeks, myTeamStartingWeek;
 
     public FxController() {
         new Thread(() -> FPLUtil.loginRequest()).start();
@@ -85,7 +87,7 @@ public class FxController {
 
             for (int i = 1; i <= GAMEDAYS; i++) {
 
-                List<Team> teams = teamChecker.calculatePlays(i);
+                List<Team> teams = teamChecker.calculatePlays(i, 0);
                 teamChecker.calculatePlaces(teams);
 
                 if (i == OPTIMAL_WEEKS) {
@@ -160,7 +162,6 @@ public class FxController {
 
                 List<Player> badBuys = buys.get(PlayerValue.BAD);
                 TableView<Player> badBuysTable = createPlayerTable(badBuys);
-//                badBuysTable.getColumns().getColumns().get(2).
                 Platform.runLater(() -> {
                     preSeasonBadValue.getChildren().add(badBuysTable);
                 });
@@ -177,7 +178,10 @@ public class FxController {
 
             try {
                 myTeamThread.join();
-                createMyTeamGrid(leagueAdviser.matchPlayers(players));
+                List<Pick> picks = leagueAdviser.matchPlayers(players);
+                myTeamFutureWeeks.valueProperty().addListener((obs, oldValue, newValue) -> createMyTeamGrid(picks));
+                myTeamStartingWeek.valueProperty().addListener((obs, oldValue, newValue) -> createMyTeamGrid(picks));
+                createMyTeamGrid(picks);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -216,34 +220,38 @@ public class FxController {
 
     public void createMyTeamGrid(List<Pick> picks) {
 
+        Platform.runLater(() -> myTeamGridPane.getChildren().clear());
+
         int goalkeepers = 1;
         int defenders = 0;
         int midfielder = 0;
         int strikers = 1;
 
-        int future = 3;
-        List<Team> teams = teamChecker.calculatePlays(future);
+        int future = myTeamFutureWeeks.getValue();
+        int starting = myTeamStartingWeek.getValue();
+        List<Team> teams = teamChecker.calculatePlays(future + starting, starting);
         teamChecker.calculatePlaces(teams);
-
 
         for (Pick pick : picks) {
             Team team = teams.stream().filter(e -> e.getId() == pick.getPlayer().getTeam()).findFirst().orElse(null);
             Label label = new Label(pick.getPlayer().getName() + " (" + team.getShortName() + ")");
             GridPane.setHalignment(label, HPos.CENTER);
 
-            if (team.getDifficultyTotal() < (future * 2) + 1) {
+            double metric = ((double)team.getDifficultyTotal() / future);
+
+            if (metric < 2) {
                 label.setBackground(new Background(new BackgroundFill(Color.web("#00c9e8"), CornerRadii.EMPTY, Insets.EMPTY)));
-            } else if (team.getDifficultyTotal() < (future * 2) + 2) {
+            } else if (metric < 2.4) {
                 label.setBackground(new Background(new BackgroundFill(Color.web("#22ff00"), CornerRadii.EMPTY, Insets.EMPTY)));
-            } else if (team.getDifficultyTotal() < (future * 2) + 3) {
+            } else if (metric < 2.8) {
                 label.setBackground(new Background(new BackgroundFill(Color.web("#b2e802"), CornerRadii.EMPTY, Insets.EMPTY)));
-            } else if (team.getDifficultyTotal() < (future * 2) + 4) {
+            } else if (metric < 3.2) {
                 label.setBackground(new Background(new BackgroundFill(Color.web("#e8e800"), CornerRadii.EMPTY, Insets.EMPTY)));
-            } else if (team.getDifficultyTotal() < (future * 2) + 5) {
+            } else if (metric < 3.6) {
                 label.setBackground(new Background(new BackgroundFill(Color.web("#e8b200"), CornerRadii.EMPTY, Insets.EMPTY)));
-            } else if (team.getDifficultyTotal() < (future * 2) + 6) {
+            } else if (metric < 4) {
                 label.setBackground(new Background(new BackgroundFill(Color.web("#e87902"), CornerRadii.EMPTY, Insets.EMPTY)));
-            } else if (team.getDifficultyTotal() < (future * 2) + 7) {
+            } else if (metric < 4.4) {
                 label.setBackground(new Background(new BackgroundFill(Color.web("#e83f00"), CornerRadii.EMPTY, Insets.EMPTY)));
             } else {
                 label.setBackground(new Background(new BackgroundFill(Color.web("#e80000"), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -807,11 +815,15 @@ public class FxController {
 
     public void setMatrixListener() {
         OPTIMAL_WEEKS = Integer.parseInt(matrixOptimal.getText());
-        List<Team> teams = teamChecker.calculatePlays(OPTIMAL_WEEKS);
+        List<Team> teams = teamChecker.calculatePlays(OPTIMAL_WEEKS, 0);
         teamChecker.calculatePlaces(teams);
         List<Team> optimalTeams = new ArrayList<>(4);
         optimalTeams.addAll(teams.subList(16, 20));
         TableView<List<StringProperty>> difficultyTable = createDifficultyTable(teamChecker.getTeams(), optimalTeams);
         Platform.runLater(() -> difficultyPane.getChildren().add(difficultyTable));
+    }
+
+    public void setMyTeamListener() {
+        System.out.println("TEST");
     }
 }

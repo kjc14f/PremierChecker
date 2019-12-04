@@ -36,6 +36,9 @@ public class LeagueAdviser {
         return picks;
     }
 
+    /**
+     * Add a player object onto the results returned from the my-team request
+     */
     public List<Pick> matchPlayers(Map<Integer, Player> players) {
         picks.stream().forEach(e -> e.setPlayer(players.get(e.getElement())));
         return picks;
