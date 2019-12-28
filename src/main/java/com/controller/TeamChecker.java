@@ -155,7 +155,7 @@ public class TeamChecker {
                 CURRENT_GAMEWEEK++;
             }
         }
-        CURRENT_GAMEWEEK = (CURRENT_GAMEWEEK / 10) + 1;
+        CURRENT_GAMEWEEK = Math.round(((float)CURRENT_GAMEWEEK / 10) + 1);
         Collections.sort(fixtures, Comparator.comparing(Fixture::getDeadlineTime));
         Map<LocalDateTime, List<Fixture>> mixedGameweeks = new TreeMap<>(fixtures.stream().collect(Collectors.groupingBy(e -> e.getDeadlineTime())));
 
